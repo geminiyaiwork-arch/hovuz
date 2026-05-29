@@ -155,7 +155,7 @@ class HovuzTheme {
         onSurface: text,
         error: red,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -207,7 +207,7 @@ class HovuzTheme {
         onSurface: dText,
         error: red,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: dSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
