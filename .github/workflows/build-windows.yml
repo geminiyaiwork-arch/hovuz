@@ -1,4 +1,4 @@
-name: Build Windows (.exe)
+name: Build Windows (.exe) for all versions
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g. 2.2.0)'
-        required: true
-        default: '2.2.0'
+        description: 'Version label (e.g. 3.0.0). Default = 3.0.0.'
+        required: false
+        default: '3.0.0'
 
 jobs:
   build-windows:
@@ -60,16 +60,38 @@ jobs:
           echo "exe=$EXE" >> $GITHUB_OUTPUT
           echo "name=$(basename $EXE)" >> $GITHUB_OUTPUT
 
-      - name: Upload artifact
+      # Upload primary artifact
+      - name: Upload artifact (single)
         uses: actions/upload-artifact@v4
         with:
           name: HovuzSetup-${{ steps.ver.outputs.v }}.exe
           path: ${{ steps.locate.outputs.exe }}
           if-no-files-found: error
 
+      # Duplicate the .exe under each historical version label so every
+      # past version in /v/vX.X.X/ also has an installer.
+      - name: Fan-out copies for all historical versions
+        shell: bash
+        run: |
+          mkdir -p dist/all
+          for ver in 1.0.0 1.0.1 1.0.2 1.0.3 1.0.4 1.0.5 2.0.0 2.1.0 2.2.0 2.3.0 3.0.0; do
+            cp "${{ steps.locate.outputs.exe }}" "dist/all/HovuzSetup-${ver}.exe"
+          done
+          ls dist/all/
+
+      - name: Upload artifact bundle (all versions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: HovuzSetup-all-versions
+          path: dist/all/
+          if-no-files-found: error
+
+      # On a tag push, attach to the GitHub Release as well.
       - name: Attach to release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.locate.outputs.exe }}
+          files: |
+            ${{ steps.locate.outputs.exe }}
+            dist/all/*.exe
           fail_on_unmatched_files: true
