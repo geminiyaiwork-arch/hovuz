@@ -1,0 +1,75 @@
+name: Build Windows (.exe)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 2.2.0)'
+        required: true
+        default: '2.2.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "v=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            REF="${GITHUB_REF#refs/tags/v}"
+            echo "v=${REF}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Setup Inno Setup
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build installer
+        shell: cmd
+        run: |
+          mkdir dist 2>nul
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=${{ steps.ver.outputs.v }} packaging\windows\hovuz_setup.iss
+
+      - name: Locate installer
+        id: locate
+        shell: bash
+        run: |
+          EXE=$(ls dist/HovuzSetup-*.exe | head -n1)
+          echo "exe=$EXE" >> $GITHUB_OUTPUT
+          echo "name=$(basename $EXE)" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HovuzSetup-${{ steps.ver.outputs.v }}.exe
+          path: ${{ steps.locate.outputs.exe }}
+          if-no-files-found: error
+
+      - name: Attach to release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.locate.outputs.exe }}
+          fail_on_unmatched_files: true

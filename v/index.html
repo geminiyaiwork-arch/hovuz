@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hovuz — Crypto Transaction Inspector · Yuklab olish</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --border: #e1e7f0;
+      --text: #0f1f38;
+      --textdim: #5a6a85;
+      --brand: #1e62d8;
+      --branddeep: #154aab;
+      --gold: #e4a300;
+      --green: #10a85b;
+      --red: #e0394a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #f8fafd 0%, #edf2f9 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-bottom: 16px;
+    }
+    .lang-switch button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--textdim);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-switch button.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .lang-switch button:hover { transform: translateY(-1px); }
+
+    header {
+      text-align: center;
+      padding: 32px 20px;
+      background: var(--surface);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 24px rgba(21, 74, 171, 0.08);
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 12px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--brand);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      color: var(--textdim);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .latest-banner {
+      background: linear-gradient(135deg, #4f86e8, #1e62d8);
+      color: white;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 12px 32px rgba(21, 74, 171, 0.25);
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .latest-banner .info { flex: 1; min-width: 250px; }
+    .latest-banner h2 { font-size: 12px; opacity: 0.85; letter-spacing: 1.5px; }
+    .latest-banner .version { font-size: 28px; font-weight: 800; margin: 4px 0; }
+    .latest-banner .meta { font-size: 13px; opacity: 0.9; }
+
+    .download-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--brand);
+      border: none;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
+    .btn.deb { background: white; color: var(--brand); }
+    .btn.exe { background: rgba(255, 255, 255, 0.15); color: white; border: 2px solid rgba(255, 255, 255, 0.5); }
+    .btn.exe:hover { background: rgba(255, 255, 255, 0.25); }
+    .btn.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--textdim);
+      letter-spacing: 1.8px;
+      margin: 32px 0 14px;
+    }
+
+    .version-list { display: grid; gap: 12px; }
+
+    .version-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s;
+    }
+    .version-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); }
+
+    .version-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .version-info { flex: 1; min-width: 220px; }
+    .version-tag {
+      display: inline-block;
+      background: rgba(30, 98, 216, 0.12);
+      color: var(--branddeep);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .version-date { color: var(--textdim); font-size: 12px; margin-left: 8px; }
+    .version-name { font-size: 16px; font-weight: 700; margin: 6px 0 2px; color: var(--text); }
+    .version-desc { color: var(--textdim); font-size: 13px; line-height: 1.5; }
+
+    .file-buttons { display: flex; gap: 8px; }
+    .file-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .file-btn:hover { background: var(--bg); border-color: var(--brand); color: var(--brand); }
+    .file-btn.linux { color: var(--brand); border-color: rgba(30, 98, 216, 0.3); }
+    .file-btn.windows { color: var(--green); border-color: rgba(16, 168, 91, 0.3); }
+    .file-btn.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      padding: 24px;
+      color: var(--textdim);
+      font-size: 13px;
+    }
+    footer a { color: var(--brand); text-decoration: none; font-weight: 700; }
+
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .feature-pill {
+      background: rgba(30, 98, 216, 0.08);
+      color: var(--branddeep);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="lang-switch">
+      <button class="active" data-lang="uz">🇺🇿 UZ</button>
+      <button data-lang="en">🇬🇧 EN</button>
+      <button data-lang="ru">🇷🇺 RU</button>
+    </div>
+
+    <header>
+      <img class="logo" src="../images/logo.png" alt="Hovuz">
+      <h1>Hovuz</h1>
+      <div class="tagline lang-section active" data-lang="uz">
+        Kripto tranzaksiya va kashelek tekshiruv dasturi
+      </div>
+      <div class="tagline lang-section" data-lang="en">
+        Crypto transaction and wallet inspector
+      </div>
+      <div class="tagline lang-section" data-lang="ru">
+        Инспектор крипто-транзакций и кошельков
+      </div>
+    </header>
+
+    <div class="latest-banner">
+      <div class="info">
+        <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
+        <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
+        <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
+        <div class="version">v3.0.0</div>
+        <div class="meta lang-section active" data-lang="uz">
+          2026-05-29 · Sankey + Portfolio + Tarix + Polygon/Arbitrum/Base/Optimism
+        </div>
+        <div class="meta lang-section" data-lang="en">
+          2026-05-29 · Sankey + Portfolio + History + Polygon/Arbitrum/Base/Optimism
+        </div>
+        <div class="meta lang-section" data-lang="ru">
+          2026-05-29 · Sankey + Портфель + История + Polygon/Arbitrum/Base/Optimism
+        </div>
+      </div>
+      <div class="download-buttons">
+        <a href="v3.0.0/hovuz_3.0.0_amd64.deb" class="btn deb" download>
+          🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
+          <span class="lang-section" data-lang="en">Linux .deb</span>
+          <span class="lang-section" data-lang="ru">Linux .deb</span>
+        </a>
+        <a href="v3.0.0/HovuzSetup-3.0.0.exe" class="btn exe disabled">
+          🪟 <span class="lang-section active" data-lang="uz">Windows .exe (Tez orada)</span>
+          <span class="lang-section" data-lang="en">Windows .exe (Soon)</span>
+          <span class="lang-section" data-lang="ru">Windows .exe (Скоро)</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section-title lang-section active" data-lang="uz">BARCHA VERSIYALAR</div>
+    <div class="section-title lang-section" data-lang="en">ALL RELEASES</div>
+    <div class="section-title lang-section" data-lang="ru">ВСЕ ВЕРСИИ</div>
+
+    <div class="version-list" id="version-list">
+      <!-- versions injected here -->
+    </div>
+
+    <footer>
+      <p class="lang-section active" data-lang="uz">
+        © 2026 Qodirov Elyorbek · VISIO EYE ·
+        <a href="https://t.me/voo_uz">Telegram</a>
+      </p>
+      <p class="lang-section" data-lang="en">
+        © 2026 Qodirov Elyorbek · VISIO EYE ·
+        <a href="https://t.me/voo_uz">Telegram</a>
+      </p>
+      <p class="lang-section" data-lang="ru">
+        © 2026 Кадиров Эльёрбек · VISIO EYE ·
+        <a href="https://t.me/voo_uz">Telegram</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // ============================================================
+    // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
+    // ============================================================
+    const VERSIONS = [
+      {
+        version: 'v3.0.0',
+        date: '2026-05-29',
+        uz: {
+          name: '🎉 VAU EFFEKTI · 9 chain',
+          desc: 'Pul oqimi diagrammasi (Sankey), token portfolio + USD qiymat, qidiruv tarixi, +4 yangi chain: Polygon, Arbitrum, Optimism, Base.'
+        },
+        en: {
+          name: '🎉 WOW · 9 chains',
+          desc: 'Fund flow Sankey diagram, token portfolio with USD value, search history, +4 new chains: Polygon, Arbitrum, Optimism, Base.'
+        },
+        ru: {
+          name: '🎉 ВАУ · 9 сетей',
+          desc: 'Sankey диаграмма потоков, портфель токенов в USD, история поиска, +4 новые сети: Polygon, Arbitrum, Optimism, Base.'
+        },
+        features: ['🗺️ Sankey', '💼 Portfolio', '📋 History', '🟣 Polygon', '🔵 Arbitrum', '🔴 Optimism', '🟦 Base'],
+        deb: 'v3.0.0/hovuz_3.0.0_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v2.3.0',
+        date: '2026-05-29',
+        uz: {
+          name: 'Forensika to\'plami',
+          desc: 'Multi-hop pul izi (mixer aniqlash), 0-100 xavf darajasi, $100K+ whale belgisi, AML formatdagi PDF hisobot.'
+        },
+        en: {
+          name: 'Forensics suite',
+          desc: 'Multi-hop fund trace (mixer detect), 0-100 risk score, $100K+ whale flag, AML-style PDF report.'
+        },
+        ru: {
+          name: 'Форензика',
+          desc: 'Multi-hop трассировка (детект миксера), риск 0-100, кит $100K+, AML PDF отчёт.'
+        },
+        features: ['🔬 Trace', '📊 Risk', '🐋 Whale', '📑 PDF'],
+        deb: 'v2.3.0/hovuz_2.3.0_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v2.2.0',
+        date: '2026-05-29',
+        uz: {
+          name: 'UX yangilanish',
+          desc: 'CoinGecko orqali USD narx, shaxsiy izohlar, ENS/SNS nom hal qilish, qorong\'i tema, klaviatura yorliqlari (Ctrl+L, Alt+←/→, Ctrl+T, Ctrl+W).'
+        },
+        en: {
+          name: 'UX refresh',
+          desc: 'USD prices via CoinGecko, private notes, ENS/SNS name resolution, dark theme, keyboard shortcuts (Ctrl+L, Alt+←/→, Ctrl+T, Ctrl+W).'
+        },
+        ru: {
+          name: 'Обновление UX',
+          desc: 'USD цены через CoinGecko, личные заметки, разрешение имён ENS/SNS, тёмная тема, горячие клавиши.'
+        },
+        features: ['💵 USD', '📝 Notes', '🔤 ENS', '🌗 Theme', '⌨️ Shortcuts'],
+        deb: 'v2.2.0/hovuz_2.2.0_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v2.1.0',
+        date: '2026-05-29',
+        uz: {
+          name: 'Yurisdiksiya + OFAC + Vaqt zona + Excel',
+          desc: '17 ta birja davlat/bayroq, 21 ta OFAC SDN sanksiya manzili, soatli faollik histogrammasi, .xlsx eksport.'
+        },
+        en: {
+          name: 'Jurisdiction + OFAC + Timezone + Excel',
+          desc: '17 exchanges with country/flag, 21 OFAC SDN sanctioned addresses, hourly activity histogram, .xlsx export.'
+        },
+        ru: {
+          name: 'Юрисдикция + OFAC + Часовой пояс + Excel',
+          desc: '17 бирж со страной/флагом, 21 санкционных адресов OFAC SDN, гистограмма активности, .xlsx экспорт.'
+        },
+        features: ['🌍 Jurisdiction', '🚨 OFAC SDN', '🌐 Timezone', '📊 Excel'],
+        deb: 'v2.1.0/hovuz_2.1.0_amd64.deb',
+        exe: 'v2.1.0/HovuzSetup-2.1.0.exe'
+      },
+      {
+        version: 'v2.0.0',
+        date: '2026-05-29',
+        uz: {
+          name: 'Navigatsiya + Watchlist + Logos',
+          desc: 'Drill-down klik, orqa/oldinga, gruping+filter, watchlist+signal, pagination, real coin logolari.'
+        },
+        en: {
+          name: 'Navigation + Watchlist + Logos',
+          desc: 'Click-to-drill, back/forward, grouping+filter, watchlist with alerts, pagination, real coin logos.'
+        },
+        ru: {
+          name: 'Навигация + Watchlist + Лого',
+          desc: 'Клик-проход, назад/вперёд, группировка+фильтр, watchlist+сигнал, пагинация, реальные лого монет.'
+        },
+        features: ['🔄 Nav', '❤️ Watchlist', '🔍 Filter', '🪙 Logos'],
+        deb: 'v2.0.0/hovuz_2.0.0_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.5',
+        date: '2026-05-29',
+        uz: { name: 'Sidebar top alignment', desc: 'Chap panel mazmuni tepada yopishadi.' },
+        en: { name: 'Sidebar top alignment', desc: 'Left panel sticks to top.' },
+        ru: { name: 'Прижатие сайдбара', desc: 'Левая панель прижата к верху.' },
+        features: ['🐛 fix'],
+        deb: 'v1.0.5/hovuz_1.0.5_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.4',
+        date: '2026-05-29',
+        uz: { name: 'Ikonka + maximize', desc: 'Logo ish stoli ikonkasi sifatida, oyna to\'liq ochiladi.' },
+        en: { name: 'Icon + maximize', desc: 'Logo as desktop icon, window opens maximized.' },
+        ru: { name: 'Иконка + макс', desc: 'Лого как иконка, окно открывается максимизированным.' },
+        features: ['🖼️ icon', '⬜ maximize'],
+        deb: 'v1.0.4/hovuz_1.0.4_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.3',
+        date: '2026-05-29',
+        uz: {
+          name: 'Logo + Solana + Kontrakt + Aftor',
+          desc: 'Brand-blue logo, Solana qo\'shildi, har transferda kontrakt manzili, Qodirov Elyorbek aftor.'
+        },
+        en: {
+          name: 'Logo + Solana + Contracts + Author',
+          desc: 'Brand-blue logo, Solana support, contract addresses per transfer, author info.'
+        },
+        ru: {
+          name: 'Лого + Solana + Контракты + Автор',
+          desc: 'Brand-blue лого, поддержка Solana, контракты на каждый перевод, автор.'
+        },
+        features: ['🎨 logo', '◎ Solana', '📋 Contract', '👤 Author'],
+        deb: 'v1.0.3/hovuz_1.0.3_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.2',
+        date: '2026-05-29',
+        uz: { name: 'i18n UZ/EN/RU', desc: '53 ta string 3 tilda, runtime til tanlash.' },
+        en: { name: 'i18n UZ/EN/RU', desc: '53 strings in 3 languages, runtime language switching.' },
+        ru: { name: 'i18n UZ/EN/RU', desc: '53 строки на 3 языках, переключение в рантайме.' },
+        features: ['🇺🇿', '🇬🇧', '🇷🇺'],
+        deb: 'v1.0.2/hovuz_1.0.2_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.1',
+        date: '2026-05-29',
+        uz: { name: 'Kripto-iliq dizayn', desc: 'Krem-oltin palitra, chain-specific gradientlar.' },
+        en: { name: 'Crypto-warm design', desc: 'Cream-gold palette, chain-specific gradients.' },
+        ru: { name: 'Крипто-тёплый дизайн', desc: 'Кремово-золотая палитра, чейн-градиенты.' },
+        features: ['🎨 design'],
+        deb: 'v1.0.1/hovuz_1.0.1_amd64.deb',
+        exe: null
+      },
+      {
+        version: 'v1.0.0',
+        date: '2026-05-29',
+        uz: { name: 'Birinchi versiya', desc: 'BTC, ETH, TRON, BNB qidiruvi, birja yorliqlari, Linux build.' },
+        en: { name: 'Initial release', desc: 'BTC, ETH, TRON, BNB search, exchange labels, Linux build.' },
+        ru: { name: 'Первый релиз', desc: 'Поиск BTC, ETH, TRON, BNB, метки бирж, Linux сборка.' },
+        features: ['🌱 init'],
+        deb: 'v1.0.0/hovuz_1.0.0_amd64.deb',
+        exe: null
+      },
+    ];
+
+    // ============================================================
+    // Render
+    // ============================================================
+    let currentLang = 'uz';
+
+    function txt(lang) {
+      switch (lang) {
+        case 'uz': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Tez orada' };
+        case 'en': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Soon' };
+        case 'ru': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Скоро' };
+      }
+    }
+
+    function renderVersions() {
+      const t = txt(currentLang);
+      const list = document.getElementById('version-list');
+      list.innerHTML = VERSIONS.map(v => {
+        const meta = v[currentLang];
+        const features = (v.features || [])
+          .map(f => `<span class="feature-pill">${f}</span>`).join('');
+        const debBtn = v.deb
+          ? `<a class="file-btn linux" href="${v.deb}" download>🐧 ${t.linux}</a>`
+          : `<span class="file-btn linux disabled">🐧 ${t.linux}</span>`;
+        const exeBtn = v.exe
+          ? `<a class="file-btn windows" href="${v.exe}" download>🪟 ${t.windows}</a>`
+          : `<span class="file-btn windows disabled">🪟 ${t.windows} · ${t.soon}</span>`;
+        return `
+          <div class="version-card">
+            <div class="version-row">
+              <div class="version-info">
+                <div>
+                  <span class="version-tag">${v.version}</span>
+                  <span class="version-date">${v.date}</span>
+                </div>
+                <div class="version-name">${meta.name}</div>
+                <div class="version-desc">${meta.desc}</div>
+                ${features ? `<div class="features">${features}</div>` : ''}
+              </div>
+              <div class="file-buttons">${debBtn}${exeBtn}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-switch button').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      document.querySelectorAll('.lang-section').forEach(el => {
+        el.classList.toggle('active', el.dataset.lang === lang);
+      });
+      renderVersions();
+    }
+
+    document.querySelectorAll('.lang-switch button').forEach(b => {
+      b.addEventListener('click', () => setLang(b.dataset.lang));
+    });
+
+    renderVersions();
+  </script>
+</body>
+</html>
