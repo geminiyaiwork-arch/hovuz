@@ -190,6 +190,12 @@
     .file-btn:hover { background: var(--bg); border-color: var(--brand); color: var(--brand); }
     .file-btn.linux { color: var(--brand); border-color: rgba(30, 98, 216, 0.3); }
     .file-btn.windows { color: var(--green); border-color: rgba(16, 168, 91, 0.3); }
+    .file-btn.windows[href*="actions"] {
+      background: linear-gradient(135deg, #fffceb 0%, #ffe9a3 100%);
+      color: #a37100;
+      border-color: rgba(228, 163, 0, 0.4);
+    }
+    .file-btn.windows[href*="actions"]:hover { background: linear-gradient(135deg, #fff7d4 0%, #ffd96b 100%); }
     .file-btn.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
     footer {
@@ -265,10 +271,13 @@
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
-        <a href="v3.0.0/HovuzSetup-3.0.0.exe" class="btn exe disabled">
-          🪟 <span class="lang-section active" data-lang="uz">Windows .exe (Tez orada)</span>
-          <span class="lang-section" data-lang="en">Windows .exe (Soon)</span>
-          <span class="lang-section" data-lang="ru">Windows .exe (Скоро)</span>
+        <a id="latest-exe-btn"
+           href="https://github.com/voo-uz/hovuz/actions/workflows/build-windows.yml"
+           target="_blank" rel="noopener"
+           class="btn exe">
+          🪟 <span class="lang-section active" data-lang="uz">Windows .exe · GitHub'da build →</span>
+          <span class="lang-section" data-lang="en">Windows .exe · Build on GitHub →</span>
+          <span class="lang-section" data-lang="ru">Windows .exe · Собрать на GitHub →</span>
         </a>
       </div>
     </div>
@@ -475,11 +484,16 @@
 
     function txt(lang) {
       switch (lang) {
-        case 'uz': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Tez orada' };
-        case 'en': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Soon' };
-        case 'ru': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Скоро' };
+        case 'uz': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Build qilish →' };
+        case 'en': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Build →' };
+        case 'ru': return { linux: 'Linux .deb', windows: 'Windows .exe', soon: 'Собрать →' };
       }
     }
+
+    // GitHub Actions workflow dispatch URL — placeholder until repo created
+    const GITHUB_REPO = window.__HOVUZ_REPO || 'voo-uz/hovuz';
+    const buildUrl = (version) =>
+      `https://github.com/${GITHUB_REPO}/actions/workflows/build-windows.yml`;
 
     function renderVersions() {
       const t = txt(currentLang);
@@ -493,7 +507,7 @@
           : `<span class="file-btn linux disabled">🐧 ${t.linux}</span>`;
         const exeBtn = v.exe
           ? `<a class="file-btn windows" href="${v.exe}" download>🪟 ${t.windows}</a>`
-          : `<span class="file-btn windows disabled">🪟 ${t.windows} · ${t.soon}</span>`;
+          : `<a class="file-btn windows" href="${buildUrl(v.version)}" target="_blank" rel="noopener" title="GitHub Actions ${t.soon}">🪟 ${t.windows} · ${t.soon}</a>`;
         return `
           <div class="version-card">
             <div class="version-row">
