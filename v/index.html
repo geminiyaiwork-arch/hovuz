@@ -254,30 +254,29 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.0.0</div>
+        <div class="version">v3.1.0</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-05-29 · Sankey + Portfolio + Tarix + Polygon/Arbitrum/Base/Optimism
+          2026-06-01 · Donat bo'limi (USDT TRC20 + BTC) qo'shildi
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-05-29 · Sankey + Portfolio + History + Polygon/Arbitrum/Base/Optimism
+          2026-06-01 · Donate section (USDT TRC20 + BTC) added
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-05-29 · Sankey + Портфель + История + Polygon/Arbitrum/Base/Optimism
+          2026-06-01 · Добавлен раздел донат (USDT TRC20 + BTC)
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.0.0/hovuz_3.0.0_amd64.deb" class="btn deb" download>
+        <a href="v3.1.0/hovuz_3.1.0_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="https://github.com/voo-uz/hovuz/actions/workflows/build-windows.yml"
-           target="_blank" rel="noopener"
-           class="btn exe">
-          🪟 <span class="lang-section active" data-lang="uz">Windows .exe · GitHub'da build →</span>
-          <span class="lang-section" data-lang="en">Windows .exe · Build on GitHub →</span>
-          <span class="lang-section" data-lang="ru">Windows .exe · Собрать на GitHub →</span>
+           href="v3.1.0/HovuzSetup-3.1.0.exe"
+           class="btn exe" download>
+          🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
+          <span class="lang-section" data-lang="en">Windows .exe</span>
+          <span class="lang-section" data-lang="ru">Windows .exe</span>
         </a>
       </div>
     </div>
@@ -311,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.1.0',
+        date: '2026-06-01',
+        uz: {
+          name: '💝 Donat bo\'limi',
+          desc: 'Dasturni qo\'llab-quvvatlash uchun USDT TRC20 va Bitcoin manzillari qo\'shildi (logolar bilan, copy tugma, eng kam summa).'
+        },
+        en: {
+          name: '💝 Donate section',
+          desc: 'USDT TRC20 and Bitcoin donation addresses added (with brand logos, copy button, minimum amount).'
+        },
+        ru: {
+          name: '💝 Раздел донат',
+          desc: 'Добавлены адреса USDT TRC20 и Bitcoin для поддержки проекта (с лого, кнопкой копирования, минимальной суммой).'
+        },
+        features: ['💝 Donate', '₮ USDT', '₿ BTC'],
+        deb: 'v3.1.0/hovuz_3.1.0_amd64.deb',
+        exe: 'v3.1.0/HovuzSetup-3.1.0.exe'
+      },
       {
         version: 'v3.0.0',
         date: '2026-05-29',

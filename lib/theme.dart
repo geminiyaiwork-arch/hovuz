@@ -155,14 +155,8 @@ class HovuzTheme {
         onSurface: text,
         error: red,
       ),
-      cardTheme: CardThemeData(
-        color: surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: border),
-        ),
-      ),
+      // cardTheme intentionally omitted — works across Flutter 3.22 (CardTheme)
+      // and Flutter 3.27+ (CardThemeData). Material 3 defaults are fine.
       dividerColor: border,
       textTheme: base.textTheme.apply(
         bodyColor: text,
@@ -207,14 +201,7 @@ class HovuzTheme {
         onSurface: dText,
         error: red,
       ),
-      cardTheme: CardThemeData(
-        color: dSurface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: dBorder),
-        ),
-      ),
+      // cardTheme omitted for cross-version compatibility.
       dividerColor: dBorder,
       textTheme: base.textTheme.apply(bodyColor: dText, displayColor: dText),
       inputDecorationTheme: InputDecorationTheme(

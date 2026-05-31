@@ -204,6 +204,16 @@ abstract class S {
   String get portfolioTitle;
   String get newTabTooltip;
 
+  // v3.1 — Donate
+  String get donateTitle;
+  String get donateDescription;
+  String get donateNetworkUsdtTrc20;
+  String get donateNetworkBtc;
+  String donateMin(String formatted);
+  String get donateWarningUsdt;
+  String get donateWarningBtc;
+  String get donateThanks;
+
   // Chain names
   String chainLong(String code);
 
@@ -521,6 +531,26 @@ class UzS extends S {
   String get portfolioTitle => 'Token portfolio';
   @override
   String get newTabTooltip => 'Yangi tab';
+  @override
+  String get donateTitle => 'DONAT — DASTURNI QO\'LLAB-QUVVATLASH';
+  @override
+  String get donateDescription =>
+      'Hovuz bepul va ochiq dastur. Agar foydali deb topgan bo\'lsangiz, kichik donat orqali keyingi yangiliklarga yordam bering. Rahmat!';
+  @override
+  String get donateNetworkUsdtTrc20 => 'TRON · TRC20';
+  @override
+  String get donateNetworkBtc => 'Bitcoin tarmog\'i';
+  @override
+  String donateMin(String formatted) => 'Eng kam summa: $formatted';
+  @override
+  String get donateWarningUsdt =>
+      'Diqqat! Faqat USDT (TRC20) jo\'nating. Boshqa tarmoq (ERC20/BEP20) yo\'qoladi.';
+  @override
+  String get donateWarningBtc =>
+      'Diqqat! Faqat Bitcoin (BTC) jo\'nating. BCH/LTC/wrapped BTC yo\'qoladi.';
+  @override
+  String get donateThanks =>
+      'Har bir donat — Hovuz\'ning rivojiga sarmoya. Ko\'p rahmat!';
 
   @override
   String chainLong(String code) {
@@ -874,6 +904,26 @@ class EnS extends S {
   String get portfolioTitle => 'Token portfolio';
   @override
   String get newTabTooltip => 'New tab';
+  @override
+  String get donateTitle => 'DONATE — SUPPORT THE PROJECT';
+  @override
+  String get donateDescription =>
+      'Hovuz is free and open source. If you find it useful, please consider a small donation to keep development going. Thank you!';
+  @override
+  String get donateNetworkUsdtTrc20 => 'TRON · TRC20';
+  @override
+  String get donateNetworkBtc => 'Bitcoin network';
+  @override
+  String donateMin(String formatted) => 'Minimum: $formatted';
+  @override
+  String get donateWarningUsdt =>
+      'Warning! Send only USDT (TRC20). Funds sent via ERC20/BEP20 will be lost.';
+  @override
+  String get donateWarningBtc =>
+      'Warning! Send only Bitcoin (BTC). BCH/LTC/wrapped BTC will be lost.';
+  @override
+  String get donateThanks =>
+      'Every donation fuels Hovuz development. Thank you so much!';
 
   @override
   String chainLong(String code) {
@@ -1227,6 +1277,26 @@ class RuS extends S {
   String get portfolioTitle => 'Портфель токенов';
   @override
   String get newTabTooltip => 'Новая вкладка';
+  @override
+  String get donateTitle => 'ДОНАТ — ПОДДЕРЖАТЬ ПРОЕКТ';
+  @override
+  String get donateDescription =>
+      'Hovuz — бесплатная и открытая программа. Если она вам полезна, поддержите развитие небольшим донатом. Спасибо!';
+  @override
+  String get donateNetworkUsdtTrc20 => 'TRON · TRC20';
+  @override
+  String get donateNetworkBtc => 'Сеть Bitcoin';
+  @override
+  String donateMin(String formatted) => 'Минимум: $formatted';
+  @override
+  String get donateWarningUsdt =>
+      'Внимание! Отправляйте только USDT (TRC20). Средства через ERC20/BEP20 будут потеряны.';
+  @override
+  String get donateWarningBtc =>
+      'Внимание! Отправляйте только Bitcoin (BTC). BCH/LTC/wrapped BTC будут потеряны.';
+  @override
+  String get donateThanks =>
+      'Каждый донат — вклад в развитие Hovuz. Большое спасибо!';
 
   @override
   String chainLong(String code) {

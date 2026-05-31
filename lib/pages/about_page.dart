@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/strings.dart';
 import '../theme.dart';
+import '../widgets/donate_section.dart';
 
 /// AUTHOR / DASTUR HAQIDA sahifasi.
 class AboutPage extends StatelessWidget {
@@ -62,7 +63,7 @@ class AboutPage extends StatelessWidget {
   ];
 
   static const String kAuthorAvatarAsset = 'images/avatar.jpg';
-  static const String kAppVersion = '1.0.3';
+  static const String kAppVersion = '3.1.0';
   // ============================================================
 
   @override
@@ -106,6 +107,8 @@ class AboutPage extends StatelessWidget {
                 _authorCard(s, loc),
                 const SizedBox(height: 22),
                 _contactsCard(s),
+                const SizedBox(height: 22),
+                const DonateSection(),
                 const SizedBox(height: 22),
                 _legalCard(s),
               ],
