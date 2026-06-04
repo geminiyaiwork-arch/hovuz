@@ -25,9 +25,12 @@ class PortfolioToken {
 }
 
 class PortfolioService {
-  PortfolioService({http.Client? client}) : _client = client ?? http.Client();
+  PortfolioService({http.Client? client, this.etherscanKey})
+      : _client = client ?? http.Client();
 
   final http.Client _client;
+  // Runtime-mutable so HomePage can refresh from ApiKeysService.
+  String? etherscanKey;
 
   Future<List<PortfolioToken>> fetch(String address, Chain chain) async {
     if (chain.isEvm) return _fetchEvm(address, chain);
@@ -58,7 +61,7 @@ class PortfolioService {
   Future<List<PortfolioToken>> _fetchEvm(String addr, Chain chain) async {
     const base = 'https://api.etherscan.io/v2/api';
     final cid = _chainId(chain);
-    final key = ApiKeys.etherscanDefault;
+    final key = etherscanKey ?? ApiKeys.etherscanDefault;
     try {
       // Use tokentx to enumerate tokens that have ever touched the address.
       final r = await _client

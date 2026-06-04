@@ -204,6 +204,27 @@ abstract class S {
   String get portfolioTitle;
   String get newTabTooltip;
 
+  // v3.2 — Settings (API keys)
+  String get settingsTitle;
+  String get settingsTooltip;
+  String get settingsApiKeysHeading;
+  String get settingsApiKeysIntro;
+  String get settingsEtherscanTitle;
+  String get settingsEtherscanSubtitle;
+  String get settingsTronGridTitle;
+  String get settingsTronGridSubtitle;
+  String get settingsKeyPlaceholder;
+  String get settingsKeyActive;
+  String get settingsKeyMissing;
+  String get settingsKeyOptional;
+  String get settingsSave;
+  String get settingsSaved;
+  String get settingsShow;
+  String get settingsHide;
+  String get settingsPaste;
+  String settingsGetKeyAt(String domain);
+  String get settingsKeysStorageNote;
+
   // v3.1 — Donate
   String get donateTitle;
   String get donateDescription;
@@ -531,6 +552,48 @@ class UzS extends S {
   String get portfolioTitle => 'Token portfolio';
   @override
   String get newTabTooltip => 'Yangi tab';
+  @override
+  String get settingsTitle => 'Sozlamalar';
+  @override
+  String get settingsTooltip => 'Sozlamalar';
+  @override
+  String get settingsApiKeysHeading => 'API kalitlar';
+  @override
+  String get settingsApiKeysIntro =>
+      'Etherscan V2 endi majburiy — bepul kalit qo\'shing va Ethereum, BNB Chain, Polygon, Arbitrum, Optimism, Base hammasi shu kalit bilan ishlaydi. Kalitlar faqat sizning kompyuteringizda saqlanadi.';
+  @override
+  String get settingsEtherscanTitle => 'Etherscan V2 kalit';
+  @override
+  String get settingsEtherscanSubtitle =>
+      'Bitta kalit barcha EVM chainlarga (ETH, BSC, Polygon, Arbitrum, Optimism, Base). Bepul: 5 so\'rov/sek, 100 000/kun.';
+  @override
+  String get settingsTronGridTitle => 'TronGrid kalit (ixtiyoriy)';
+  @override
+  String get settingsTronGridSubtitle =>
+      'TRON tarmog\'i uchun. Kalitsiz ham past tezlikda ishlaydi.';
+  @override
+  String get settingsKeyPlaceholder => 'Kalit shu yerga yopishtiring…';
+  @override
+  String get settingsKeyActive => 'FAOL';
+  @override
+  String get settingsKeyMissing => 'KALIT YO\'Q';
+  @override
+  String get settingsKeyOptional => 'IXTIYORIY';
+  @override
+  String get settingsSave => 'Saqlash';
+  @override
+  String get settingsSaved => 'Saqlandi ✓';
+  @override
+  String get settingsShow => 'Ko\'rsatish';
+  @override
+  String get settingsHide => 'Yashirish';
+  @override
+  String get settingsPaste => 'Yopishtirish';
+  @override
+  String settingsGetKeyAt(String domain) => 'Bepul kalit · $domain';
+  @override
+  String get settingsKeysStorageNote =>
+      'Kalitlar SharedPreferences orqali faqat sizning Kali Linux/Windows kompyuteringizda saqlanadi. Hovuz ularni internetga yubormaydi.';
   @override
   String get donateTitle => 'DONAT — DASTURNI QO\'LLAB-QUVVATLASH';
   @override
@@ -914,6 +977,48 @@ class EnS extends S {
   @override
   String get newTabTooltip => 'New tab';
   @override
+  String get settingsTitle => 'Settings';
+  @override
+  String get settingsTooltip => 'Settings';
+  @override
+  String get settingsApiKeysHeading => 'API keys';
+  @override
+  String get settingsApiKeysIntro =>
+      'Etherscan V2 now requires a key — get a free one and Ethereum, BNB Chain, Polygon, Arbitrum, Optimism and Base will all use it. Keys are stored locally on your machine only.';
+  @override
+  String get settingsEtherscanTitle => 'Etherscan V2 key';
+  @override
+  String get settingsEtherscanSubtitle =>
+      'Single key works across all EVM chains (ETH, BSC, Polygon, Arbitrum, Optimism, Base). Free tier: 5 req/sec, 100k/day.';
+  @override
+  String get settingsTronGridTitle => 'TronGrid key (optional)';
+  @override
+  String get settingsTronGridSubtitle =>
+      'For the TRON network. Works without a key at lower rate.';
+  @override
+  String get settingsKeyPlaceholder => 'Paste your key here…';
+  @override
+  String get settingsKeyActive => 'ACTIVE';
+  @override
+  String get settingsKeyMissing => 'KEY MISSING';
+  @override
+  String get settingsKeyOptional => 'OPTIONAL';
+  @override
+  String get settingsSave => 'Save';
+  @override
+  String get settingsSaved => 'Saved ✓';
+  @override
+  String get settingsShow => 'Show';
+  @override
+  String get settingsHide => 'Hide';
+  @override
+  String get settingsPaste => 'Paste';
+  @override
+  String settingsGetKeyAt(String domain) => 'Get free key · $domain';
+  @override
+  String get settingsKeysStorageNote =>
+      'Keys are stored via SharedPreferences locally on your Linux/Windows machine only. Hovuz never uploads them.';
+  @override
   String get donateTitle => 'DONATE — SUPPORT THE PROJECT';
   @override
   String get donateDescription =>
@@ -1295,6 +1400,48 @@ class RuS extends S {
   String get portfolioTitle => 'Портфель токенов';
   @override
   String get newTabTooltip => 'Новая вкладка';
+  @override
+  String get settingsTitle => 'Настройки';
+  @override
+  String get settingsTooltip => 'Настройки';
+  @override
+  String get settingsApiKeysHeading => 'API-ключи';
+  @override
+  String get settingsApiKeysIntro =>
+      'Etherscan V2 теперь обязателен — добавьте бесплатный ключ и Ethereum, BNB Chain, Polygon, Arbitrum, Optimism, Base все будут работать с ним. Ключи хранятся локально.';
+  @override
+  String get settingsEtherscanTitle => 'Ключ Etherscan V2';
+  @override
+  String get settingsEtherscanSubtitle =>
+      'Один ключ работает со всеми EVM сетями (ETH, BSC, Polygon, Arbitrum, Optimism, Base). Бесплатно: 5 запросов/сек, 100 000/день.';
+  @override
+  String get settingsTronGridTitle => 'Ключ TronGrid (необязательно)';
+  @override
+  String get settingsTronGridSubtitle =>
+      'Для сети TRON. Без ключа работает на низкой скорости.';
+  @override
+  String get settingsKeyPlaceholder => 'Вставьте ключ сюда…';
+  @override
+  String get settingsKeyActive => 'АКТИВЕН';
+  @override
+  String get settingsKeyMissing => 'НЕТ КЛЮЧА';
+  @override
+  String get settingsKeyOptional => 'ОПЦИОНАЛЬНО';
+  @override
+  String get settingsSave => 'Сохранить';
+  @override
+  String get settingsSaved => 'Сохранено ✓';
+  @override
+  String get settingsShow => 'Показать';
+  @override
+  String get settingsHide => 'Скрыть';
+  @override
+  String get settingsPaste => 'Вставить';
+  @override
+  String settingsGetKeyAt(String domain) => 'Бесплатный ключ · $domain';
+  @override
+  String get settingsKeysStorageNote =>
+      'Ключи хранятся через SharedPreferences только локально на вашем Linux/Windows. Hovuz не передаёт их в интернет.';
   @override
   String get donateTitle => 'ДОНАТ — ПОДДЕРЖАТЬ ПРОЕКТ';
   @override

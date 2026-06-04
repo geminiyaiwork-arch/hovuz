@@ -5,6 +5,7 @@ import '../l10n/strings.dart';
 import '../main.dart';
 import '../models/chain.dart';
 import '../models/transfer.dart';
+import 'settings_page.dart';
 import '../services/blockchain_service.dart';
 import '../services/chain_detector.dart';
 import '../services/name_resolver.dart';
@@ -65,6 +66,11 @@ class _HomePageState extends State<HomePage> {
   bool get _canForward => _index < _history.length - 1;
 
   Future<void> _search(String q, Chain? hint) async {
+    // Refresh runtime API keys from user's Settings before each lookup.
+    final keys = ApiKeysScope.of(context);
+    _service.etherscanKey = keys.etherscan;
+    _service.bscscanKey = keys.etherscan; // V2 unifies, same key
+    _service.tronGridKey = keys.tronGrid;
     setState(() => _busy = true);
     var query = q.trim();
     // Try ENS / SNS resolution first
@@ -222,6 +228,9 @@ class _HomePageState extends State<HomePage> {
             onSearch: _search,
             onAboutPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const AboutPage()),
+            ),
+            onSettingsPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsPage()),
             ),
             onWatchlistPressed: _showWatchlist,
             watchlist: widget.watchlist,

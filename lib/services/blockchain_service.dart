@@ -27,9 +27,10 @@ class BlockchainService {
   }) : _client = client ?? http.Client();
 
   final http.Client _client;
-  final String? etherscanKey;
-  final String? bscscanKey;
-  final String? tronGridKey;
+  // Runtime-mutable so HomePage can refresh from ApiKeysService.
+  String? etherscanKey;
+  String? bscscanKey;
+  String? tronGridKey;
 
   // ============================================================
   // PUBLIC API

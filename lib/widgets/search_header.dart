@@ -14,6 +14,7 @@ class SearchHeader extends StatefulWidget {
     super.key,
     required this.onSearch,
     required this.onAboutPressed,
+    required this.onSettingsPressed,
     required this.onWatchlistPressed,
     required this.busy,
     required this.canBack,
@@ -26,6 +27,7 @@ class SearchHeader extends StatefulWidget {
 
   final Future<void> Function(String query, Chain? hint) onSearch;
   final VoidCallback onAboutPressed;
+  final VoidCallback onSettingsPressed;
   final VoidCallback onWatchlistPressed;
   final VoidCallback onBack;
   final VoidCallback onForward;
@@ -237,6 +239,12 @@ class _SearchHeaderState extends State<SearchHeader> {
           const SizedBox(width: 6),
           const LanguageSelector(),
           const SizedBox(width: 6),
+          IconButton(
+            tooltip: s.settingsTooltip,
+            onPressed: widget.onSettingsPressed,
+            icon: const Icon(Icons.settings_rounded,
+                color: HovuzTheme.textDim),
+          ),
           IconButton(
             tooltip: s.aboutTooltip,
             onPressed: widget.onAboutPressed,

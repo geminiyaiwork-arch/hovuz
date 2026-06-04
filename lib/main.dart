@@ -6,6 +6,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'l10n/strings.dart';
 import 'pages/home_page.dart';
+import 'services/api_keys_service.dart';
 import 'services/notes_service.dart';
 import 'services/price_service.dart';
 import 'services/recent_service.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
   final watchlist = await WatchlistService.load();
   final notes = await NotesService.load();
   final recent = await RecentService.load();
+  final apiKeys = await ApiKeysService.load();
   final priceService = PriceService();
   unawaited(priceService.warmup());
 
@@ -45,6 +47,7 @@ Future<void> main() async {
     watchlist: watchlist,
     notes: notes,
     recent: recent,
+    apiKeys: apiKeys,
     priceService: priceService,
   ));
 }
@@ -57,6 +60,7 @@ class HovuzApp extends StatelessWidget {
     required this.watchlist,
     required this.notes,
     required this.recent,
+    required this.apiKeys,
     required this.priceService,
   });
 
@@ -65,18 +69,21 @@ class HovuzApp extends StatelessWidget {
   final WatchlistService watchlist;
   final NotesService notes;
   final RecentService recent;
+  final ApiKeysService apiKeys;
   final PriceService priceService;
 
   @override
   Widget build(BuildContext context) {
     return PriceScope(
       service: priceService,
-      child: NotesScope(
-        service: notes,
-        child: ThemeScope(
-          controller: themeController,
-          child: LocaleScope(
-            controller: localeController,
+      child: ApiKeysScope(
+        service: apiKeys,
+        child: NotesScope(
+          service: notes,
+          child: ThemeScope(
+            controller: themeController,
+            child: LocaleScope(
+              controller: localeController,
             child: AnimatedBuilder(
               animation: Listenable.merge(
                   [localeController, themeController]),
@@ -109,7 +116,23 @@ class HovuzApp extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
+  }
+}
+
+class ApiKeysScope extends InheritedNotifier<ApiKeysService> {
+  const ApiKeysScope({
+    super.key,
+    required ApiKeysService service,
+    required super.child,
+  }) : super(notifier: service);
+
+  static ApiKeysService of(BuildContext context) {
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<ApiKeysScope>();
+    assert(scope != null, 'ApiKeysScope missing');
+    return scope!.notifier!;
   }
 }
 
