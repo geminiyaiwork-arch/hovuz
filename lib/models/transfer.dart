@@ -95,6 +95,11 @@ class AddressSummary {
   final String? label;
   final List<Transfer> recentTransfers;
 
+  /// Per-symbol received totals (native + ERC20/BEP20 tokens).
+  /// e.g. {'ETH': 0.42, 'USDT': 700.5, 'USDC': 12.0}
+  final Map<String, double> totalReceivedBySymbol;
+  final Map<String, double> totalSentBySymbol;
+
   const AddressSummary({
     required this.chain,
     required this.address,
@@ -104,7 +109,30 @@ class AddressSummary {
     required this.txCount,
     required this.recentTransfers,
     this.label,
+    this.totalReceivedBySymbol = const {},
+    this.totalSentBySymbol = const {},
   });
+
+  /// Returns the symbol with the largest received total. Useful when the
+  /// address has token activity but no native value moves — UI can then
+  /// show 'USDT' totals instead of '0 ETH'.
+  String get primarySymbol {
+    if (totalReceivedBySymbol.isEmpty) return chain.nativeSymbol;
+    var best = chain.nativeSymbol;
+    var bestVal = totalReceivedBySymbol[best] ?? 0;
+    totalReceivedBySymbol.forEach((sym, val) {
+      if (val > bestVal) {
+        bestVal = val;
+        best = sym;
+      }
+    });
+    return best;
+  }
+
+  double get primaryReceived =>
+      totalReceivedBySymbol[primarySymbol] ?? totalReceivedNative;
+  double get primarySent =>
+      totalSentBySymbol[primarySymbol] ?? totalSentNative;
 }
 
 class LookupResult {

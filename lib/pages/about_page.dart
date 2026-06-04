@@ -63,7 +63,7 @@ class AboutPage extends StatelessWidget {
   ];
 
   static const String kAuthorAvatarAsset = 'images/avatar.jpg';
-  static const String kAppVersion = '3.2.3';
+  static const String kAppVersion = '3.2.4';
   // ============================================================
 
   @override

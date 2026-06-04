@@ -805,6 +805,8 @@ class BlockchainService {
     double totalIn = 0;
     double totalOut = 0;
     final transfers = <Transfer>[];
+    final receivedBySym = <String, double>{};
+    final sentBySym = <String, double>{};
 
     // Process native value transfers.
     for (final t in txs) {
@@ -817,8 +819,16 @@ class BlockchainService {
       final ts = int.tryParse((m['timeStamp'] as String?) ?? '0') ?? 0;
       final time =
           ts > 0 ? DateTime.fromMillisecondsSinceEpoch(ts * 1000) : null;
-      if (from == me) totalOut += value.toDouble();
-      if (to == me) totalIn += value.toDouble();
+      if (from == me) {
+        totalOut += value.toDouble();
+        sentBySym[chain.nativeSymbol] =
+            (sentBySym[chain.nativeSymbol] ?? 0) + value.toDouble();
+      }
+      if (to == me) {
+        totalIn += value.toDouble();
+        receivedBySym[chain.nativeSymbol] =
+            (receivedBySym[chain.nativeSymbol] ?? 0) + value.toDouble();
+      }
       if (value > 0) {
         transfers.add(Transfer(
           from: from,
@@ -849,11 +859,18 @@ class BlockchainService {
       final ts = int.tryParse((m['timeStamp'] as String?) ?? '0') ?? 0;
       final time =
           ts > 0 ? DateTime.fromMillisecondsSinceEpoch(ts * 1000) : null;
-      if (amount > BigInt.zero / BigInt.one) {
+      final amtDouble = amount.toDouble();
+      if (amtDouble > 0) {
+        if (from == me) {
+          sentBySym[symbol] = (sentBySym[symbol] ?? 0) + amtDouble;
+        }
+        if (to == me) {
+          receivedBySym[symbol] = (receivedBySym[symbol] ?? 0) + amtDouble;
+        }
         transfers.add(Transfer(
           from: from,
           to: to,
-          amount: amount.toDouble(),
+          amount: amtDouble,
           symbol: symbol,
           fromLabel: ExchangeAddressBook.lookup(from, chain)?.display,
           toLabel: ExchangeAddressBook.lookup(to, chain)?.display,
@@ -893,6 +910,8 @@ class BlockchainService {
       txCount: hashSet.length,
       label: ExchangeAddressBook.lookup(addr, chain)?.display,
       recentTransfers: transfers,
+      totalReceivedBySymbol: receivedBySym,
+      totalSentBySymbol: sentBySym,
     );
   }
 

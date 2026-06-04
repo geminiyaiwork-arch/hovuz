@@ -99,40 +99,55 @@ class SummarySidebar extends StatelessWidget {
       ];
 
   List<Widget> _addressSummary(AddressSummary a, S s) {
-    final sym = a.chain.nativeSymbol;
+    final nativeSym = a.chain.nativeSymbol;
+    // Pick the symbol that actually saw the most activity. For a wallet
+    // that received 700 USDT but 0 ETH, the totals should display USDT.
+    final primarySym = a.primarySymbol;
+    final received = a.primaryReceived;
+    final sent = a.primarySent;
     return [
       _ChainBadge(
-          symbol: sym, label: a.chain.label, network: s.networkWord),
+          symbol: nativeSym,
+          label: a.chain.label,
+          network: s.networkWord),
       const SizedBox(height: 16),
       _Section(title: s.sectionGeneralBalance),
       const SizedBox(height: 14),
       _StatCard(
         label: s.currentBalance,
         value: fmtAmount(a.balanceNative),
-        symbol: sym,
-        gradient: HovuzTheme.chainGradient(sym),
-        color: HovuzTheme.chainColor(sym),
+        symbol: nativeSym,
+        gradient: HovuzTheme.chainGradient(nativeSym),
+        color: HovuzTheme.chainColor(nativeSym),
         icon: Icons.account_balance_wallet_rounded,
         numericValue: a.balanceNative,
       ),
       const SizedBox(height: 12),
       _StatCard(
         label: s.totalReceivedMoney,
-        value: fmtAmount(a.totalReceivedNative),
-        symbol: sym,
+        value: fmtAmount(received),
+        symbol: primarySym,
         color: HovuzTheme.green,
         icon: Icons.south_west_rounded,
-        numericValue: a.totalReceivedNative,
+        numericValue: received,
       ),
       const SizedBox(height: 12),
       _StatCard(
         label: s.totalSentMoney,
-        value: fmtAmount(a.totalSentNative),
-        symbol: sym,
+        value: fmtAmount(sent),
+        symbol: primarySym,
         color: HovuzTheme.red,
         icon: Icons.north_east_rounded,
-        numericValue: a.totalSentNative,
+        numericValue: sent,
       ),
+      // Multi-token summary line when the address moved more than 1 asset.
+      if (a.totalReceivedBySymbol.length > 1) ...[
+        const SizedBox(height: 12),
+        _MultiAssetCard(
+          received: a.totalReceivedBySymbol,
+          sent: a.totalSentBySymbol,
+        ),
+      ],
       const SizedBox(height: 16),
       _miniBlock([
         _Mini(s.txCount, '${a.txCount}'),
@@ -444,6 +459,109 @@ class _UsdHint extends StatelessWidget {
           fontWeight: FontWeight.w700,
           fontSize: 12,
         ),
+      ),
+    );
+  }
+}
+
+/// Compact list of all assets the address moved (received vs sent),
+/// sorted by received amount descending. Shown when more than one
+/// symbol has activity.
+class _MultiAssetCard extends StatelessWidget {
+  const _MultiAssetCard({required this.received, required this.sent});
+  final Map<String, double> received;
+  final Map<String, double> sent;
+
+  @override
+  Widget build(BuildContext context) {
+    final symbols = {...received.keys, ...sent.keys}.toList()
+      ..sort((a, b) =>
+          (received[b] ?? 0).compareTo(received[a] ?? 0));
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: HovuzTheme.surface,
+        border: Border.all(color: HovuzTheme.border),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: HovuzTheme.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.swap_vertical_circle_rounded,
+                  size: 14, color: HovuzTheme.brand),
+              SizedBox(width: 6),
+              Text(
+                'BARCHA AKTIVLAR',
+                style: TextStyle(
+                  color: HovuzTheme.textDim,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final sym in symbols.take(6)) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 48,
+                    child: Text(
+                      sym,
+                      style: TextStyle(
+                        color: HovuzTheme.chainColor(sym),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.south_west_rounded,
+                            size: 10, color: HovuzTheme.green),
+                        const SizedBox(width: 2),
+                        Text(
+                          fmtAmount(received[sym] ?? 0, max: 4),
+                          style: const TextStyle(
+                            color: HovuzTheme.green,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Icons.north_east_rounded,
+                          size: 10, color: HovuzTheme.red),
+                      const SizedBox(width: 2),
+                      Text(
+                        fmtAmount(sent[sym] ?? 0, max: 4),
+                        style: const TextStyle(
+                          color: HovuzTheme.red,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (sym != symbols.last && sym != symbols.take(6).last)
+              const Divider(height: 1, color: HovuzTheme.borderSoft),
+          ],
+        ],
       ),
     );
   }
