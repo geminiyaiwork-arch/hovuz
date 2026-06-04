@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.2.2</div>
+        <div class="version">v3.2.3</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · Manzilda BEP20/ERC20 token o'tkazmalari ham ko'rinadi
+          2026-06-04 · BSC/Polygon/Arbitrum uchun public RPC fallback
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · Address view now includes BEP20/ERC20 token transfers
+          2026-06-04 · Public RPC fallback for BSC/Polygon/Arbitrum/etc
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · Адрес теперь показывает BEP20/ERC20 переводы токенов
+          2026-06-04 · Public RPC резерв для BSC/Polygon/Arbitrum/etc
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.2.2/hovuz_3.2.2_amd64.deb" class="btn deb" download>
+        <a href="v3.2.3/hovuz_3.2.3_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.2.2/HovuzSetup-3.2.2.exe"
+           href="v3.2.3/HovuzSetup-3.2.3.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.2.3',
+        date: '2026-06-04',
+        uz: {
+          name: '🛟 RPC fallback ($0 ishlatuv)',
+          desc: 'Etherscan V2 bepul tarifi faqat Ethereum\'ni qo\'llab-quvvatlaydi ($199/oy Pro plan). Hovuz endi BSC/Polygon/Arbitrum/Optimism/Base uchun bepul public JSON-RPC\'ga avtomatik o\'tadi — native balans + USDT/USDC/BUSD balanslari to\'g\'ridan-to\'g\'ri token kontraktidan o\'qiladi.'
+        },
+        en: {
+          name: '🛟 RPC fallback (no paid API)',
+          desc: 'Etherscan V2 free tier only covers Ethereum (\$199/mo for Pro). Hovuz now auto-falls back to free public JSON-RPC for BSC/Polygon/Arbitrum/Optimism/Base — native balance + USDT/USDC/BUSD read straight from token contracts.'
+        },
+        ru: {
+          name: '🛟 RPC резерв (бесплатно)',
+          desc: 'Etherscan V2 free tier поддерживает только Ethereum (\$199/мес Pro). Hovuz теперь авто-переключается на бесплатные публичные JSON-RPC для BSC/Polygon/Arbitrum/Optimism/Base — нативный баланс + USDT/USDC/BUSD прямо с токен-контрактов.'
+        },
+        features: ['🛟 RPC fallback', '💰 token balanceOf', '🆓 no paid API'],
+        deb: 'v3.2.3/hovuz_3.2.3_amd64.deb',
+        exe: 'v3.2.3/HovuzSetup-3.2.3.exe'
+      },
       {
         version: 'v3.2.2',
         date: '2026-06-04',
