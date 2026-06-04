@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.2.3</div>
+        <div class="version">v3.2.4</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · BSC/Polygon/Arbitrum uchun public RPC fallback
+          2026-06-04 · Sidebar har token uchun jami summalarni ko'rsatadi
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · Public RPC fallback for BSC/Polygon/Arbitrum/etc
+          2026-06-04 · Sidebar aggregates per-token totals (USDT + ETH + …)
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · Public RPC резерв для BSC/Polygon/Arbitrum/etc
+          2026-06-04 · Сайдбар суммирует по каждому токену
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.2.3/hovuz_3.2.3_amd64.deb" class="btn deb" download>
+        <a href="v3.2.4/hovuz_3.2.4_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.2.3/HovuzSetup-3.2.3.exe"
+           href="v3.2.4/HovuzSetup-3.2.4.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.2.4',
+        date: '2026-06-04',
+        uz: {
+          name: '📊 Token summalar sidebar\'da',
+          desc: 'Manzil 40 ta USDT o\'tkazma qilgan bo\'lsa, "Jami olingan: 0 ETH" yo\'q endi — endi "Jami olingan: 700 USDT" ko\'rinadi. Asosiy aktiv avtomatik tanlanadi. Ko\'p aktivli manzillar uchun "Barcha aktivlar" kartochkasi qo\'shildi.'
+        },
+        en: {
+          name: '📊 Per-token totals in sidebar',
+          desc: 'For wallets whose 40 transactions are all USDT transfers, no more misleading "Received: 0 ETH" — sidebar now shows "Received: 700 USDT". Primary asset auto-detected. Multi-asset wallets get a "All assets" card.'
+        },
+        ru: {
+          name: '📊 Сумма по токенам в сайдбаре',
+          desc: 'Для кошельков с 40 USDT-переводами больше нет «Получено: 0 ETH» — теперь «Получено: 700 USDT». Основной актив определяется автоматически. Для мульти-активных кошельков карточка «Все активы».'
+        },
+        features: ['📊 token totals', '🎯 auto-primary', '📋 all assets'],
+        deb: 'v3.2.4/hovuz_3.2.4_amd64.deb',
+        exe: 'v3.2.4/HovuzSetup-3.2.4.exe'
+      },
       {
         version: 'v3.2.3',
         date: '2026-06-04',
