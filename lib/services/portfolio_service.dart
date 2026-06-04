@@ -36,37 +36,39 @@ class PortfolioService {
     return const [];
   }
 
-  String _evmBase(Chain c) {
+  /// Etherscan V2 unified endpoint + chainid. Same key for all EVM chains.
+  int _chainId(Chain c) {
     switch (c) {
       case Chain.bsc:
-        return 'https://api.bscscan.com/api';
+        return 56;
       case Chain.polygon:
-        return 'https://api.polygonscan.com/api';
+        return 137;
       case Chain.arbitrum:
-        return 'https://api.arbiscan.io/api';
+        return 42161;
       case Chain.optimism:
-        return 'https://api-optimistic.etherscan.io/api';
+        return 10;
       case Chain.base:
-        return 'https://api.basescan.org/api';
+        return 8453;
+      case Chain.ethereum:
       default:
-        return 'https://api.etherscan.io/api';
+        return 1;
     }
   }
 
   Future<List<PortfolioToken>> _fetchEvm(String addr, Chain chain) async {
-    final base = _evmBase(chain);
-    final key = chain == Chain.bsc
-        ? ApiKeys.bscscanDefault
-        : ApiKeys.etherscanDefault;
+    const base = 'https://api.etherscan.io/v2/api';
+    final cid = _chainId(chain);
+    final key = ApiKeys.etherscanDefault;
     try {
       // Use tokentx to enumerate tokens that have ever touched the address.
       final r = await _client
           .get(Uri.parse(
-              '$base?module=account&action=tokentx&address=$addr&page=1&offset=200&sort=desc&apikey=$key'))
+              '$base?chainid=$cid&module=account&action=tokentx&address=$addr&page=1&offset=200&sort=desc&apikey=$key'))
           .timeout(const Duration(seconds: 15));
       if (r.statusCode != 200) return const [];
       final body = jsonDecode(r.body) as Map<String, dynamic>;
-      final txs = (body['result'] as List?) ?? const [];
+      final txRaw = body['result'];
+      final txs = txRaw is List ? txRaw : const [];
       // For each unique contract, sum signed flow (received - sent).
       final agg = <String, _EvmAgg>{};
       final me = addr.toLowerCase();

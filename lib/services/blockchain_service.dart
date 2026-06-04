@@ -295,26 +295,41 @@ class BlockchainService {
   // ETHEREUM / BSC  (Etherscan-compatible v2)
   // ============================================================
 
-  String _evmBase(Chain c) {
+  /// Etherscan V2 multi-chain API. ONE endpoint + chainid for every EVM chain.
+  /// Docs: https://docs.etherscan.io/v2-migration
+  String _evmBase(Chain c) => 'https://api.etherscan.io/v2/api';
+
+  /// EVM chain ID for Etherscan V2 multi-chain calls.
+  int _chainId(Chain c) {
     switch (c) {
       case Chain.bsc:
-        return 'https://api.bscscan.com/api';
+        return 56;
       case Chain.polygon:
-        return 'https://api.polygonscan.com/api';
+        return 137;
       case Chain.arbitrum:
-        return 'https://api.arbiscan.io/api';
+        return 42161;
       case Chain.optimism:
-        return 'https://api-optimistic.etherscan.io/api';
+        return 10;
       case Chain.base:
-        return 'https://api.basescan.org/api';
+        return 8453;
+      case Chain.ethereum:
       default:
-        return 'https://api.etherscan.io/api';
+        return 1;
     }
   }
 
+  /// V2 unifies all EVM chains under one key. Falls back to per-chain
+  /// override if the user set bscscanKey (legacy).
   String _evmKey(Chain c) {
-    if (c == Chain.bsc) return bscscanKey ?? ApiKeys.bscscanDefault;
+    if (c == Chain.bsc && bscscanKey != null) return bscscanKey!;
     return etherscanKey ?? ApiKeys.etherscanDefault;
+  }
+
+  /// Builds the V2 URL with chainid + the given module/action params.
+  /// Just prepend `chainid=N&` after the `?` of the V1-style query.
+  String _evmUrl(Chain c, String query) {
+    final cid = _chainId(c);
+    return '${_evmBase(c)}?chainid=$cid&$query';
   }
 
   /// BscScan/Etherscan return a 200 even on logical errors — the body is
@@ -333,15 +348,14 @@ class BlockchainService {
   }
 
   Future<TransactionInfo> _evmTransaction(String hash, Chain chain) async {
-    final base = _evmBase(chain);
     final key = _evmKey(chain);
 
-    // Get the transaction
+    // Get the transaction (Etherscan V2 multi-chain endpoint)
     final txResp = await _getJson(
-      '$base?module=proxy&action=eth_getTransactionByHash&txhash=$hash&apikey=$key',
+      _evmUrl(chain,
+          'module=proxy&action=eth_getTransactionByHash&txhash=$hash&apikey=$key'),
     );
     _evmGuard(txResp);
-    // `result` may be a String error message instead of the tx object.
     final txRaw = txResp['result'];
     final tx = txRaw is Map<String, dynamic> ? txRaw : null;
     if (tx == null) {
@@ -349,7 +363,8 @@ class BlockchainService {
           LookupErrorCode.txNotFound, txRaw is String ? txRaw : null);
     }
     final receiptResp = await _getJson(
-      '$base?module=proxy&action=eth_getTransactionReceipt&txhash=$hash&apikey=$key',
+      _evmUrl(chain,
+          'module=proxy&action=eth_getTransactionReceipt&txhash=$hash&apikey=$key'),
     );
     _evmGuard(receiptResp);
     final receiptRaw = receiptResp['result'];
@@ -370,7 +385,8 @@ class BlockchainService {
     DateTime? time;
     if (blockNum > 0) {
       final blk = await _getJson(
-        '$base?module=proxy&action=eth_getBlockByNumber&tag=0x${blockNum.toRadixString(16)}&boolean=false&apikey=$key',
+        _evmUrl(chain,
+            'module=proxy&action=eth_getBlockByNumber&tag=0x${blockNum.toRadixString(16)}&boolean=false&apikey=$key'),
       );
       final ts = _hexInt(((blk['result'] as Map?)?['timestamp'] as String?) ?? '0x0');
       if (ts > 0) time = DateTime.fromMillisecondsSinceEpoch(ts * 1000);
@@ -436,11 +452,11 @@ class BlockchainService {
   }
 
   Future<AddressSummary> _evmAddress(String addr, Chain chain) async {
-    final base = _evmBase(chain);
     final key = _evmKey(chain);
 
     final balResp = await _getJson(
-      '$base?module=account&action=balance&address=$addr&tag=latest&apikey=$key',
+      _evmUrl(chain,
+          'module=account&action=balance&address=$addr&tag=latest&apikey=$key'),
     );
     _evmGuard(balResp);
     final balRaw = balResp['result'];
@@ -450,10 +466,11 @@ class BlockchainService {
     final balance = wei / BigInt.from(10).pow(18);
 
     final txResp = await _getJson(
-      '$base?module=account&action=txlist&address=$addr&page=1&offset=20&sort=desc&apikey=$key',
+      _evmUrl(chain,
+          'module=account&action=txlist&address=$addr&page=1&offset=20&sort=desc&apikey=$key'),
     );
     _evmGuard(txResp);
-    // BscScan/Etherscan return result as String when there's an error
+    // Etherscan V2 returns result as String when there's an error
     // ("Max rate limit", "Invalid API key"). Safe-check instead of casting.
     final txRaw = txResp['result'];
     final txs = (txRaw is List) ? txRaw : const [];
