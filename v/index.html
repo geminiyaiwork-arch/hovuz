@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.2.1</div>
+        <div class="version">v3.2.2</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · AUTO endi barcha EVM chainlarni qidiradi
+          2026-06-04 · Manzilda BEP20/ERC20 token o'tkazmalari ham ko'rinadi
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · AUTO probes all EVM chains (ETH/BSC/POL/ARB/OP/BASE)
+          2026-06-04 · Address view now includes BEP20/ERC20 token transfers
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · AUTO теперь ищет во всех EVM сетях
+          2026-06-04 · Адрес теперь показывает BEP20/ERC20 переводы токенов
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.2.1/hovuz_3.2.1_amd64.deb" class="btn deb" download>
+        <a href="v3.2.2/hovuz_3.2.2_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.2.1/HovuzSetup-3.2.1.exe"
+           href="v3.2.2/HovuzSetup-3.2.2.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.2.2',
+        date: '2026-06-04',
+        uz: {
+          name: '💎 Token o\'tkazmalari',
+          desc: 'EVM manzilida USDT/USDC/BUSD/DAI va boshqa BEP20/ERC20 tokenlar o\'tkazmalari ko\'rinadi. AUTO endi token-only manzillarni ham (faqat tokenlarda harakat) to\'g\'ri tarmoqda topadi.'
+        },
+        en: {
+          name: '💎 Token transfers in address view',
+          desc: 'EVM addresses now show USDT/USDC/BUSD/DAI and other BEP20/ERC20 token transfers. AUTO correctly detects token-only wallets (e.g. BSC USDT recipients).'
+        },
+        ru: {
+          name: '💎 Переводы токенов в адресе',
+          desc: 'EVM адреса теперь показывают переводы USDT/USDC/BUSD/DAI и других BEP20/ERC20 токенов. AUTO правильно находит токен-кошельки.'
+        },
+        features: ['💎 BEP20', '💎 ERC20', '🔍 token activity'],
+        deb: 'v3.2.2/hovuz_3.2.2_amd64.deb',
+        exe: 'v3.2.2/HovuzSetup-3.2.2.exe'
+      },
       {
         version: 'v3.2.1',
         date: '2026-06-04',
