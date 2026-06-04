@@ -476,29 +476,42 @@ class BlockchainService {
         : BigInt.zero;
     final balance = wei / BigInt.from(10).pow(18);
 
+    // Native (value) transactions.
     final txResp = await _getJson(
       _evmUrl(chain,
           'module=account&action=txlist&address=$addr&page=1&offset=20&sort=desc&apikey=$key'),
     );
     _evmGuard(txResp);
-    // Etherscan V2 returns result as String when there's an error
-    // ("Max rate limit", "Invalid API key"). Safe-check instead of casting.
     final txRaw = txResp['result'];
     final txs = (txRaw is List) ? txRaw : const [];
 
+    // ERC20 / BEP20 / Polygon ERC20 token transfers — many addresses only
+    // ever move tokens (USDT/USDC/etc.) without native value moves, so this
+    // call is essential to detect activity on token-only wallets.
+    final tokenResp = await _getJson(
+      _evmUrl(chain,
+          'module=account&action=tokentx&address=$addr&page=1&offset=20&sort=desc&apikey=$key'),
+    );
+    _evmGuard(tokenResp);
+    final tokenRaw = tokenResp['result'];
+    final tokenTxs = (tokenRaw is List) ? tokenRaw : const [];
+
+    final me = addr.toLowerCase();
     double totalIn = 0;
     double totalOut = 0;
     final transfers = <Transfer>[];
+
+    // Process native value transfers.
     for (final t in txs) {
       final m = t as Map;
-      final value = (BigInt.tryParse((m['value'] as String?) ?? '0') ?? BigInt.zero) /
-          BigInt.from(10).pow(18);
+      final value =
+          (BigInt.tryParse((m['value'] as String?) ?? '0') ?? BigInt.zero) /
+              BigInt.from(10).pow(18);
       final from = (m['from'] as String? ?? '').toLowerCase();
       final to = (m['to'] as String? ?? '').toLowerCase();
       final ts = int.tryParse((m['timeStamp'] as String?) ?? '0') ?? 0;
       final time =
           ts > 0 ? DateTime.fromMillisecondsSinceEpoch(ts * 1000) : null;
-      final me = addr.toLowerCase();
       if (from == me) totalOut += value.toDouble();
       if (to == me) totalIn += value.toDouble();
       if (value > 0) {
@@ -515,13 +528,64 @@ class BlockchainService {
       }
     }
 
+    // Process token transfers (ERC20 / BEP20 / etc.).
+    for (final t in tokenTxs) {
+      final m = t as Map;
+      final dec = int.tryParse((m['tokenDecimal'] as String? ?? '18')) ?? 18;
+      final raw = BigInt.tryParse((m['value'] as String?) ?? '0') ??
+          BigInt.zero;
+      final amount = raw / BigInt.from(10).pow(dec);
+      final from = (m['from'] as String? ?? '').toLowerCase();
+      final to = (m['to'] as String? ?? '').toLowerCase();
+      final symbol =
+          (m['tokenSymbol'] as String? ?? 'TOKEN').toUpperCase();
+      final contract =
+          (m['contractAddress'] as String? ?? '').toLowerCase();
+      final ts = int.tryParse((m['timeStamp'] as String?) ?? '0') ?? 0;
+      final time =
+          ts > 0 ? DateTime.fromMillisecondsSinceEpoch(ts * 1000) : null;
+      if (amount > BigInt.zero / BigInt.one) {
+        transfers.add(Transfer(
+          from: from,
+          to: to,
+          amount: amount.toDouble(),
+          symbol: symbol,
+          fromLabel: ExchangeAddressBook.lookup(from, chain)?.display,
+          toLabel: ExchangeAddressBook.lookup(to, chain)?.display,
+          time: time,
+          txHash: m['hash'] as String?,
+          contractAddress: contract.isEmpty ? null : contract,
+        ));
+      }
+    }
+
+    // Sort all transfers (native + tokens) by time, newest first.
+    transfers.sort((a, b) {
+      final at = a.time, bt = b.time;
+      if (at == null && bt == null) return 0;
+      if (at == null) return 1;
+      if (bt == null) return -1;
+      return bt.compareTo(at);
+    });
+
+    // Total tx count = unique hashes across both endpoints.
+    final hashSet = <String>{};
+    for (final t in txs) {
+      final h = (t as Map)['hash'] as String?;
+      if (h != null && h.isNotEmpty) hashSet.add(h);
+    }
+    for (final t in tokenTxs) {
+      final h = (t as Map)['hash'] as String?;
+      if (h != null && h.isNotEmpty) hashSet.add(h);
+    }
+
     return AddressSummary(
       chain: chain,
       address: addr,
       balanceNative: balance.toDouble(),
       totalReceivedNative: totalIn,
       totalSentNative: totalOut,
-      txCount: txs.length,
+      txCount: hashSet.length,
       label: ExchangeAddressBook.lookup(addr, chain)?.display,
       recentTransfers: transfers,
     );
