@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.1.2</div>
+        <div class="version">v3.2.0</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · Etherscan V2 multi-chain API ga migratsiya
+          2026-06-04 · Sozlamalar sahifa + ishchi Etherscan kalit
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · Migrated to Etherscan V2 multi-chain API
+          2026-06-04 · Settings page + working Etherscan key
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · Переход на Etherscan V2 multi-chain API
+          2026-06-04 · Страница настроек + рабочий ключ Etherscan
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.1.2/hovuz_3.1.2_amd64.deb" class="btn deb" download>
+        <a href="v3.2.0/hovuz_3.2.0_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.1.2/HovuzSetup-3.1.2.exe"
+           href="v3.2.0/HovuzSetup-3.2.0.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.2.0',
+        date: '2026-06-04',
+        uz: {
+          name: '⚙ Sozlamalar sahifa + ishchi kalit',
+          desc: 'Header\'da yangi ⚙ tugma — Etherscan V2 va TronGrid kalitlarini dastur ichida saqlash. Standart sifatida ishchi Etherscan kalit allaqachon kiritilgan, hech qanday sozlash kerak emas.'
+        },
+        en: {
+          name: '⚙ Settings page + working key',
+          desc: 'New ⚙ gear button in header — store Etherscan V2 and TronGrid keys in-app. Working Etherscan key shipped by default, zero configuration needed.'
+        },
+        ru: {
+          name: '⚙ Настройки + рабочий ключ',
+          desc: 'Новая ⚙ кнопка в шапке — храните ключи Etherscan V2 и TronGrid в приложении. Рабочий ключ Etherscan включён по умолчанию.'
+        },
+        features: ['⚙ Settings', '🔑 keys', '✅ works OOB'],
+        deb: 'v3.2.0/hovuz_3.2.0_amd64.deb',
+        exe: 'v3.2.0/HovuzSetup-3.2.0.exe'
+      },
       {
         version: 'v3.1.2',
         date: '2026-06-04',
