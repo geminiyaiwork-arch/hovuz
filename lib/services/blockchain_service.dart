@@ -336,6 +336,301 @@ class BlockchainService {
     return etherscanKey ?? ApiKeys.etherscanDefault;
   }
 
+  /// Public JSON-RPC endpoint per chain — used as fallback when Etherscan
+  /// V2 free tier rejects non-Ethereum chains ("Free API access is not
+  /// supported for this chain"). Free, no key required.
+  String _publicRpc(Chain c) {
+    switch (c) {
+      case Chain.bsc:
+        return 'https://bsc-dataseed.binance.org';
+      case Chain.polygon:
+        return 'https://polygon-rpc.com';
+      case Chain.arbitrum:
+        return 'https://arb1.arbitrum.io/rpc';
+      case Chain.optimism:
+        return 'https://mainnet.optimism.io';
+      case Chain.base:
+        return 'https://mainnet.base.org';
+      case Chain.ethereum:
+      default:
+        return 'https://eth.llamarpc.com';
+    }
+  }
+
+  /// Calls eth_getBalance via public RPC. Returns wei as BigInt; 0 on error.
+  Future<BigInt> _rpcBalance(Chain chain, String addr) async {
+    try {
+      final r = await _client
+          .post(
+            Uri.parse(_publicRpc(chain)),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'jsonrpc': '2.0',
+              'id': 1,
+              'method': 'eth_getBalance',
+              'params': [addr, 'latest'],
+            }),
+          )
+          .timeout(const Duration(seconds: 12));
+      if (r.statusCode >= 400) return BigInt.zero;
+      final body = jsonDecode(r.body) as Map<String, dynamic>;
+      final hex = body['result'] as String?;
+      if (hex == null) return BigInt.zero;
+      return _hexBigInt(hex);
+    } catch (_) {
+      return BigInt.zero;
+    }
+  }
+
+  /// Calls token contract's balanceOf via public RPC.
+  /// Returns raw balance as BigInt; 0 on error.
+  Future<BigInt> _rpcTokenBalance(
+    Chain chain,
+    String tokenContract,
+    String holder,
+  ) async {
+    try {
+      final holderPadded = holder.toLowerCase().replaceFirst('0x', '');
+      final data = '0x70a08231${'0' * 24}$holderPadded';
+      final r = await _client
+          .post(
+            Uri.parse(_publicRpc(chain)),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'jsonrpc': '2.0',
+              'id': 1,
+              'method': 'eth_call',
+              'params': [
+                {'to': tokenContract, 'data': data},
+                'latest'
+              ],
+            }),
+          )
+          .timeout(const Duration(seconds: 12));
+      if (r.statusCode >= 400) return BigInt.zero;
+      final body = jsonDecode(r.body) as Map<String, dynamic>;
+      final hex = body['result'] as String?;
+      if (hex == null || hex == '0x') return BigInt.zero;
+      return _hexBigInt(hex);
+    } catch (_) {
+      return BigInt.zero;
+    }
+  }
+
+  /// Etherscan V2 free tier explicitly says "Free API access is not
+  /// supported for this chain" for everything except Ethereum mainnet.
+  bool _isFreeTierBlocked(Map<String, dynamic> resp) {
+    final status = resp['status'];
+    final result = resp['result'];
+    if (status != '0') return false;
+    if (result is! String) return false;
+    final s = result.toLowerCase();
+    return s.contains('free api access is not supported') ||
+        s.contains('upgrade your api plan');
+  }
+
+  /// Build a minimal AddressSummary from public RPC data (native balance +
+  /// known token balances). Used when Etherscan V2 free tier blocks us.
+  Future<AddressSummary> _rpcAddressFallback(
+      String addr, Chain chain) async {
+    final wei = await _rpcBalance(chain, addr);
+    final balance = wei / BigInt.from(10).pow(18);
+    final transfers = <Transfer>[];
+
+    // Probe known stablecoins / wrapped tokens on this chain. If holder has
+    // any balance, surface a synthetic Transfer so the UI shows activity.
+    for (final entry in _knownChainTokens(chain).entries) {
+      final raw = await _rpcTokenBalance(chain, entry.key, addr);
+      if (raw == BigInt.zero) continue;
+      final decimals = entry.value.$2;
+      final symbol = entry.value.$1;
+      final amount = raw / BigInt.from(10).pow(decimals);
+      // Emit synthetic "balance" entry: from=token contract, to=holder.
+      transfers.add(Transfer(
+        from: entry.key,
+        to: addr,
+        amount: amount.toDouble(),
+        symbol: symbol,
+        contractAddress: entry.key,
+        // No history time; this is just a balance snapshot.
+        time: null,
+      ));
+    }
+
+    return AddressSummary(
+      chain: chain,
+      address: addr,
+      balanceNative: balance.toDouble(),
+      totalReceivedNative: 0,
+      totalSentNative: 0,
+      // Any signal that this address has activity on the chain.
+      txCount: (balance > BigInt.zero / BigInt.one ? 1 : 0) +
+          transfers.length,
+      label: ExchangeAddressBook.lookup(addr, chain)?.display,
+      recentTransfers: transfers,
+    );
+  }
+
+  /// Public-RPC tx lookup used when Etherscan V2 free tier blocks the chain.
+  /// Fetches the tx + receipt + block via eth_getTransactionByHash etc.
+  Future<TransactionInfo> _rpcTransactionFallback(
+      String hash, Chain chain) async {
+    final rpc = _publicRpc(chain);
+    Future<Map<String, dynamic>> rpcCall(
+            String method, List<dynamic> params) async {
+      final r = await _client
+          .post(
+            Uri.parse(rpc),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'jsonrpc': '2.0',
+              'id': 1,
+              'method': method,
+              'params': params,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (r.statusCode >= 400) {
+        throw LookupException(LookupErrorCode.http, '${r.statusCode}');
+      }
+      return jsonDecode(r.body) as Map<String, dynamic>;
+    }
+
+    final txResp = await rpcCall('eth_getTransactionByHash', [hash]);
+    final txRaw = txResp['result'];
+    if (txRaw is! Map<String, dynamic>) {
+      throw const LookupException(LookupErrorCode.txNotFound);
+    }
+    final tx = txRaw;
+
+    final receiptResp = await rpcCall('eth_getTransactionReceipt', [hash]);
+    final receiptRaw = receiptResp['result'];
+    final receipt =
+        receiptRaw is Map<String, dynamic> ? receiptRaw : null;
+
+    final from = (tx['from'] as String?) ?? '';
+    final to = (tx['to'] as String?) ?? '';
+    final valueWei = _hexBigInt(tx['value'] as String? ?? '0x0');
+    final valueNative = valueWei / BigInt.from(10).pow(18);
+    final gasUsed = _hexBigInt(receipt?['gasUsed'] as String? ?? '0x0');
+    final gasPrice = _hexBigInt(tx['gasPrice'] as String? ?? '0x0');
+    final feeNative = (gasUsed * gasPrice) / BigInt.from(10).pow(18);
+    final blockNum = _hexInt(tx['blockNumber'] as String? ?? '0x0');
+    final status = receipt?['status'] == '0x1' ? 'success' : 'failed';
+
+    DateTime? time;
+    if (blockNum > 0) {
+      final blk = await rpcCall('eth_getBlockByNumber', [
+        '0x${blockNum.toRadixString(16)}',
+        false,
+      ]);
+      final ts = _hexInt(
+          ((blk['result'] as Map?)?['timestamp'] as String?) ?? '0x0');
+      if (ts > 0) time = DateTime.fromMillisecondsSinceEpoch(ts * 1000);
+    }
+
+    final transfers = <Transfer>[];
+    if (valueNative > 0) {
+      transfers.add(Transfer(
+        from: from,
+        to: to,
+        amount: valueNative.toDouble(),
+        symbol: chain.nativeSymbol,
+        fromLabel: ExchangeAddressBook.lookup(from, chain)?.display,
+        toLabel: ExchangeAddressBook.lookup(to, chain)?.display,
+        time: time,
+        txHash: hash,
+      ));
+    }
+
+    // ERC20 / BEP20 Transfer events from logs.
+    final logs = (receipt?['logs'] as List?) ?? const [];
+    const transferTopic =
+        '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    for (final l in logs) {
+      final m = l as Map;
+      final topics = (m['topics'] as List?) ?? const [];
+      if (topics.isEmpty || topics[0] != transferTopic) continue;
+      if (topics.length < 3) continue;
+      final tFrom = _addrFromTopic(topics[1] as String);
+      final tTo = _addrFromTopic(topics[2] as String);
+      final dataHex = m['data'] as String? ?? '0x0';
+      final amount = _hexBigInt(dataHex);
+      final token = (m['address'] as String?) ?? '';
+      final knownToken = _knownChainTokens(chain)[token.toLowerCase()];
+      final symbol = knownToken?.$1 ?? _knownTokenSymbol(token, chain) ?? 'TOKEN';
+      final decimals =
+          knownToken?.$2 ?? _knownTokenDecimals(token, chain) ?? 18;
+      final value = amount / BigInt.from(10).pow(decimals);
+      transfers.add(Transfer(
+        from: tFrom,
+        to: tTo,
+        amount: value.toDouble(),
+        symbol: symbol,
+        fromLabel: ExchangeAddressBook.lookup(tFrom, chain)?.display,
+        toLabel: ExchangeAddressBook.lookup(tTo, chain)?.display,
+        time: time,
+        txHash: hash,
+        contractAddress: token,
+      ));
+    }
+
+    return TransactionInfo(
+      chain: chain,
+      hash: hash,
+      time: time,
+      blockHeight: blockNum,
+      confirmations: null,
+      status: status,
+      feeNative: feeNative.toDouble(),
+      transfers: transfers,
+      rawSender: from,
+      rawReceiver: to,
+    );
+  }
+
+  /// Per-chain known token contracts → (symbol, decimals). Used by the
+  /// RPC fallback to detect token balances without an indexer API.
+  Map<String, (String, int)> _knownChainTokens(Chain chain) {
+    switch (chain) {
+      case Chain.bsc:
+        return const {
+          '0x55d398326f99059ff775485246999027b3197955': ('USDT', 18),
+          '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': ('USDC', 18),
+          '0xe9e7cea3dedca5984780bafc599bd69add087d56': ('BUSD', 18),
+          '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c': ('WBNB', 18),
+        };
+      case Chain.polygon:
+        return const {
+          '0xc2132d05d31c914a87c6611c10748aeb04b58e8f': ('USDT', 6),
+          '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359': ('USDC', 6),
+          '0x2791bca1f2de4661ed88a30c99a7a9449aa84174': ('USDC.e', 6),
+          '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270': ('WMATIC', 18),
+        };
+      case Chain.arbitrum:
+        return const {
+          '0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9': ('USDT', 6),
+          '0xaf88d065e77c8cc2239327c5edb3a432268e5831': ('USDC', 6),
+          '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8': ('USDC.e', 6),
+          '0x82af49447d8a07e3bd95bd0d56f35241523fbab1': ('WETH', 18),
+        };
+      case Chain.optimism:
+        return const {
+          '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58': ('USDT', 6),
+          '0x0b2c639c533813f4aa9d7837caf62653d097ff85': ('USDC', 6),
+          '0x4200000000000000000000000000000000000006': ('WETH', 18),
+        };
+      case Chain.base:
+        return const {
+          '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913': ('USDC', 6),
+          '0x4200000000000000000000000000000000000006': ('WETH', 18),
+        };
+      case Chain.ethereum:
+      default:
+        return const {};
+    }
+  }
+
   /// Builds the V2 URL with chainid + the given module/action params.
   /// Just prepend `chainid=N&` after the `?` of the V1-style query.
   String _evmUrl(Chain c, String query) {
@@ -366,6 +661,11 @@ class BlockchainService {
       _evmUrl(chain,
           'module=proxy&action=eth_getTransactionByHash&txhash=$hash&apikey=$key'),
     );
+    // Etherscan V2 free tier blocks non-Ethereum chains → fall back to
+    // public RPC for the transaction lookup.
+    if (_isFreeTierBlocked(txResp)) {
+      return _rpcTransactionFallback(hash, chain);
+    }
     _evmGuard(txResp);
     final txRaw = txResp['result'];
     final tx = txRaw is Map<String, dynamic> ? txRaw : null;
@@ -469,6 +769,11 @@ class BlockchainService {
       _evmUrl(chain,
           'module=account&action=balance&address=$addr&tag=latest&apikey=$key'),
     );
+    // Etherscan V2 free tier blocks non-Ethereum chains → fall back to
+    // public RPC + token contract balanceOf so users still see real data.
+    if (_isFreeTierBlocked(balResp)) {
+      return _rpcAddressFallback(addr, chain);
+    }
     _evmGuard(balResp);
     final balRaw = balResp['result'];
     final wei = (balRaw is String)
