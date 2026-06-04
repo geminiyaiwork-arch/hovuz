@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.2.0</div>
+        <div class="version">v3.2.1</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · Sozlamalar sahifa + ishchi Etherscan kalit
+          2026-06-04 · AUTO endi barcha EVM chainlarni qidiradi
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · Settings page + working Etherscan key
+          2026-06-04 · AUTO probes all EVM chains (ETH/BSC/POL/ARB/OP/BASE)
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · Страница настроек + рабочий ключ Etherscan
+          2026-06-04 · AUTO теперь ищет во всех EVM сетях
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.2.0/hovuz_3.2.0_amd64.deb" class="btn deb" download>
+        <a href="v3.2.1/hovuz_3.2.1_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.2.0/HovuzSetup-3.2.0.exe"
+           href="v3.2.1/HovuzSetup-3.2.1.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.2.1',
+        date: '2026-06-04',
+        uz: {
+          name: '🎯 AUTO multi-chain qidiruv',
+          desc: '0x... manzil yoki TxID kiritilganda AVTO endi 6 EVM chainni navbati bilan tekshiradi (ETH → BSC → POL → ARB → OP → BASE) va birinchi mavjudini ko\'rsatadi. BNB Chain manzillari endi to\'g\'ri ochiladi.'
+        },
+        en: {
+          name: '🎯 AUTO multi-chain probe',
+          desc: 'For 0x… address or TxID AUTO mode now sweeps 6 EVM chains in order (ETH → BSC → POL → ARB → OP → BASE) and picks the first match. BNB Chain addresses no longer open as empty Ethereum.'
+        },
+        ru: {
+          name: '🎯 AUTO мульти-чейн поиск',
+          desc: 'Для 0x… адреса или TxID режим AUTO теперь перебирает 6 EVM сетей и показывает первую с активностью. BNB Chain адреса больше не открываются как пустой Ethereum.'
+        },
+        features: ['🎯 auto-discover', '⛓️ 6 chains'],
+        deb: 'v3.2.1/hovuz_3.2.1_amd64.deb',
+        exe: 'v3.2.1/HovuzSetup-3.2.1.exe'
+      },
       {
         version: 'v3.2.0',
         date: '2026-06-04',
