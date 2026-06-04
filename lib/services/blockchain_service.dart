@@ -45,21 +45,24 @@ class BlockchainService {
     }
     try {
       if (d.kind == InputKind.txHash) {
+        // AUTO mode for EVM tx hashes: probe ETH → BSC → POL → ARB → OP → BASE
+        // until one chain returns a valid transaction.
+        if (d.autoDetected && d.chain!.isEvm) {
+          final (chain, tx) = await _evmDiscoverTransaction(d.normalized);
+          return LookupResult(
+            detection: DetectionResult(
+              chain: chain,
+              kind: d.kind,
+              normalized: d.normalized,
+            ),
+            transaction: tx,
+          );
+        }
         switch (d.chain!) {
           case Chain.bitcoin:
             return LookupResult(
               detection: d,
               transaction: await _btcTransaction(d.normalized),
-            );
-          case Chain.ethereum:
-            return LookupResult(
-              detection: d,
-              transaction: await _evmTransaction(d.normalized, Chain.ethereum),
-            );
-          case Chain.bsc:
-            return LookupResult(
-              detection: d,
-              transaction: await _evmTransaction(d.normalized, Chain.bsc),
             );
           case Chain.tron:
             return LookupResult(
@@ -71,6 +74,8 @@ class BlockchainService {
               detection: d,
               transaction: await _solTransaction(d.normalized),
             );
+          case Chain.ethereum:
+          case Chain.bsc:
           case Chain.polygon:
           case Chain.arbitrum:
           case Chain.optimism:
@@ -81,21 +86,24 @@ class BlockchainService {
             );
         }
       } else if (d.kind == InputKind.address) {
+        // AUTO mode for EVM addresses: probe each chain and pick the one
+        // with the most activity (non-zero tx count or balance).
+        if (d.autoDetected && d.chain!.isEvm) {
+          final (chain, addr) = await _evmDiscoverAddress(d.normalized);
+          return LookupResult(
+            detection: DetectionResult(
+              chain: chain,
+              kind: d.kind,
+              normalized: d.normalized,
+            ),
+            address: addr,
+          );
+        }
         switch (d.chain!) {
           case Chain.bitcoin:
             return LookupResult(
               detection: d,
               address: await _btcAddress(d.normalized),
-            );
-          case Chain.ethereum:
-            return LookupResult(
-              detection: d,
-              address: await _evmAddress(d.normalized, Chain.ethereum),
-            );
-          case Chain.bsc:
-            return LookupResult(
-              detection: d,
-              address: await _evmAddress(d.normalized, Chain.bsc),
             );
           case Chain.tron:
             return LookupResult(
@@ -107,6 +115,8 @@ class BlockchainService {
               detection: d,
               address: await _solAddress(d.normalized),
             );
+          case Chain.ethereum:
+          case Chain.bsc:
           case Chain.polygon:
           case Chain.arbitrum:
           case Chain.optimism:
@@ -683,6 +693,74 @@ class BlockchainService {
       label: ExchangeAddressBook.lookup(addr, Chain.tron)?.display,
       recentTransfers: transfers,
     );
+  }
+
+  // ============================================================
+  // EVM AUTO-DISCOVER
+  //
+  // The same 0x… string is a valid address/hash on every EVM chain, so we
+  // can't know from the input alone which chain the user means. AUTO mode
+  // probes each chain in order and picks the first one with real data.
+  // ============================================================
+
+  /// Probe chains in order until we find the transaction. Returns the chain
+  /// it was found on plus the parsed TransactionInfo. Throws txNotFound if
+  /// none of the chains know about it.
+  Future<(Chain, TransactionInfo)> _evmDiscoverTransaction(String hash) async {
+    const probeOrder = [
+      Chain.ethereum,
+      Chain.bsc,
+      Chain.polygon,
+      Chain.arbitrum,
+      Chain.optimism,
+      Chain.base,
+    ];
+    LookupException? lastError;
+    for (final c in probeOrder) {
+      try {
+        final tx = await _evmTransaction(hash, c);
+        return (c, tx);
+      } on LookupException catch (e) {
+        // "tx not found" on this chain → try next. Other errors → bubble up.
+        if (e.code == LookupErrorCode.txNotFound) {
+          lastError = e;
+          continue;
+        }
+        rethrow;
+      }
+    }
+    throw lastError ?? const LookupException(LookupErrorCode.txNotFound);
+  }
+
+  /// Probe chains in order. Picks the first one with non-zero activity
+  /// (any tx in history). If every chain is empty, returns the Ethereum
+  /// snapshot (defaulting to ETH gives a predictable empty-state UX).
+  Future<(Chain, AddressSummary)> _evmDiscoverAddress(String addr) async {
+    const probeOrder = [
+      Chain.ethereum,
+      Chain.bsc,
+      Chain.polygon,
+      Chain.arbitrum,
+      Chain.optimism,
+      Chain.base,
+    ];
+    AddressSummary? firstEthSnapshot;
+    for (final c in probeOrder) {
+      try {
+        final a = await _evmAddress(addr, c);
+        if (a.txCount > 0 || a.balanceNative > 0) {
+          return (c, a);
+        }
+        firstEthSnapshot ??= a;
+      } on LookupException {
+        continue;
+      }
+    }
+    if (firstEthSnapshot != null) {
+      return (Chain.ethereum, firstEthSnapshot);
+    }
+    // Last-resort: query Ethereum so we always return something.
+    return (Chain.ethereum, await _evmAddress(addr, Chain.ethereum));
   }
 
   // ============================================================

@@ -33,10 +33,16 @@ class DetectionResult {
   final InputKind kind;
   final String normalized;
 
+  /// True when the detector picked the chain heuristically without a user
+  /// hint (e.g. defaulted EVM addresses to Ethereum). When set, lookup()
+  /// can probe other compatible chains if the default has no activity.
+  final bool autoDetected;
+
   const DetectionResult({
     required this.chain,
     required this.kind,
     required this.normalized,
+    this.autoDetected = false,
   });
 
   bool get ok => chain != null && kind != InputKind.unknown;

@@ -29,11 +29,12 @@ class ChainDetector {
     }
 
     if (_ethAddr.hasMatch(v)) {
-      final chain = hint == Chain.bsc ? Chain.bsc : Chain.ethereum;
+      final chain = hint ?? Chain.ethereum;
       return DetectionResult(
         chain: chain,
         kind: InputKind.address,
         normalized: v.toLowerCase(),
+        autoDetected: hint == null,
       );
     }
 
@@ -81,11 +82,12 @@ class ChainDetector {
     }
 
     if (_hex64Prefixed.hasMatch(v)) {
-      final chain = hint == Chain.bsc ? Chain.bsc : Chain.ethereum;
+      final chain = hint ?? Chain.ethereum;
       return DetectionResult(
         chain: chain,
         kind: InputKind.txHash,
         normalized: v.toLowerCase(),
+        autoDetected: hint == null,
       );
     }
 
