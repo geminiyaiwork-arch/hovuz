@@ -254,25 +254,25 @@
         <h2 class="lang-section active" data-lang="uz">SO'NGGI VERSIYA</h2>
         <h2 class="lang-section" data-lang="en">LATEST RELEASE</h2>
         <h2 class="lang-section" data-lang="ru">ПОСЛЕДНЯЯ ВЕРСИЯ</h2>
-        <div class="version">v3.1.1</div>
+        <div class="version">v3.1.2</div>
         <div class="meta lang-section active" data-lang="uz">
-          2026-06-04 · BscScan API javob cast xatosi tuzatildi
+          2026-06-04 · Etherscan V2 multi-chain API ga migratsiya
         </div>
         <div class="meta lang-section" data-lang="en">
-          2026-06-04 · Fixed BscScan API response cast crash
+          2026-06-04 · Migrated to Etherscan V2 multi-chain API
         </div>
         <div class="meta lang-section" data-lang="ru">
-          2026-06-04 · Исправлен сбой при разборе ответа BscScan
+          2026-06-04 · Переход на Etherscan V2 multi-chain API
         </div>
       </div>
       <div class="download-buttons">
-        <a href="v3.1.1/hovuz_3.1.1_amd64.deb" class="btn deb" download>
+        <a href="v3.1.2/hovuz_3.1.2_amd64.deb" class="btn deb" download>
           🐧 <span class="lang-section active" data-lang="uz">Linux .deb</span>
           <span class="lang-section" data-lang="en">Linux .deb</span>
           <span class="lang-section" data-lang="ru">Linux .deb</span>
         </a>
         <a id="latest-exe-btn"
-           href="v3.1.1/HovuzSetup-3.1.1.exe"
+           href="v3.1.2/HovuzSetup-3.1.2.exe"
            class="btn exe" download>
           🪟 <span class="lang-section active" data-lang="uz">Windows .exe</span>
           <span class="lang-section" data-lang="en">Windows .exe</span>
@@ -310,6 +310,25 @@
     // Versions data — har release qo'shilganda shu massivga 1 ta yozuv qo'shing
     // ============================================================
     const VERSIONS = [
+      {
+        version: 'v3.1.2',
+        date: '2026-06-04',
+        uz: {
+          name: '🔄 Etherscan V2 migratsiyasi',
+          desc: 'V1 endpointlar yopildi. Bitta endpoint (api.etherscan.io/v2/api) + chainid (1=ETH, 56=BSC, 137=POL, 42161=ARB, 10=OP, 8453=BASE). Bitta kalit barcha chainga.'
+        },
+        en: {
+          name: '🔄 Etherscan V2 migration',
+          desc: 'V1 endpoints deprecated. Single endpoint (api.etherscan.io/v2/api) + chainid. One API key works for all EVM chains.'
+        },
+        ru: {
+          name: '🔄 Миграция на Etherscan V2',
+          desc: 'V1 endpoints закрыты. Один endpoint + chainid. Один ключ для всех EVM сетей.'
+        },
+        features: ['🔄 V2 API', '⛓️ multi-chain', '🔑 unified key'],
+        deb: 'v3.1.2/hovuz_3.1.2_amd64.deb',
+        exe: 'v3.1.2/HovuzSetup-3.1.2.exe'
+      },
       {
         version: 'v3.1.1',
         date: '2026-06-04',
