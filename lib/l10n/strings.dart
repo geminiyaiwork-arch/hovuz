@@ -592,7 +592,16 @@ class UzS extends S {
       case LookupErrorCode.http:
         return 'HTTP xato: ${extra ?? ''}';
       case LookupErrorCode.generic:
-        return 'Xato: ${extra ?? ''}';
+        final raw = extra ?? '';
+        if (raw.toLowerCase().contains('api key')) {
+          return 'BscScan/Etherscan API kaliti yetarli emas. '
+              'Bepul kalitni https://bscscan.com/myapikey dan oling va '
+              'lib/services/api_keys.dart faylida bscscanDefault qatoriga yopishtiring.';
+        }
+        if (raw.toLowerCase().contains('rate limit')) {
+          return 'API so\'rovlari chegarasi tugagan. 1-2 daqiqa kutib qayta urinib ko\'ring.';
+        }
+        return 'Xato: $raw';
     }
   }
 }
@@ -965,7 +974,16 @@ class EnS extends S {
       case LookupErrorCode.http:
         return 'HTTP error: ${extra ?? ''}';
       case LookupErrorCode.generic:
-        return 'Error: ${extra ?? ''}';
+        final raw = extra ?? '';
+        if (raw.toLowerCase().contains('api key')) {
+          return 'BscScan/Etherscan API key required. '
+              'Get a free key at https://bscscan.com/myapikey and paste it '
+              'into lib/services/api_keys.dart → bscscanDefault.';
+        }
+        if (raw.toLowerCase().contains('rate limit')) {
+          return 'API rate limit reached. Wait 1-2 minutes and try again.';
+        }
+        return 'Error: $raw';
     }
   }
 }
@@ -1338,7 +1356,16 @@ class RuS extends S {
       case LookupErrorCode.http:
         return 'HTTP-ошибка: ${extra ?? ''}';
       case LookupErrorCode.generic:
-        return 'Ошибка: ${extra ?? ''}';
+        final raw = extra ?? '';
+        if (raw.toLowerCase().contains('api key')) {
+          return 'Требуется API-ключ BscScan/Etherscan. '
+              'Получите бесплатный ключ на https://bscscan.com/myapikey и '
+              'вставьте в lib/services/api_keys.dart → bscscanDefault.';
+        }
+        if (raw.toLowerCase().contains('rate limit')) {
+          return 'Превышен лимит API. Подождите 1-2 минуты и повторите.';
+        }
+        return 'Ошибка: $raw';
     }
   }
 }

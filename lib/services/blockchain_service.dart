@@ -317,6 +317,21 @@ class BlockchainService {
     return etherscanKey ?? ApiKeys.etherscanDefault;
   }
 
+  /// BscScan/Etherscan return a 200 even on logical errors — the body is
+  /// `{"status":"0","message":"NOTOK","result":"…explanation…"}`.
+  /// Surface those as proper LookupException instead of a casting crash.
+  void _evmGuard(Map<String, dynamic> resp) {
+    final status = resp['status'];
+    final msg = resp['message'];
+    if (status == '0' && msg == 'NOTOK') {
+      final result = resp['result'];
+      final hint = result is String ? result : msg.toString();
+      // "No transactions found" is a normal empty result, not an error.
+      if (hint.toLowerCase().contains('no transactions found')) return;
+      throw LookupException(LookupErrorCode.generic, hint);
+    }
+  }
+
   Future<TransactionInfo> _evmTransaction(String hash, Chain chain) async {
     final base = _evmBase(chain);
     final key = _evmKey(chain);
@@ -325,14 +340,21 @@ class BlockchainService {
     final txResp = await _getJson(
       '$base?module=proxy&action=eth_getTransactionByHash&txhash=$hash&apikey=$key',
     );
-    final tx = txResp['result'] as Map<String, dynamic>?;
+    _evmGuard(txResp);
+    // `result` may be a String error message instead of the tx object.
+    final txRaw = txResp['result'];
+    final tx = txRaw is Map<String, dynamic> ? txRaw : null;
     if (tx == null) {
-      throw const LookupException(LookupErrorCode.txNotFound);
+      throw LookupException(
+          LookupErrorCode.txNotFound, txRaw is String ? txRaw : null);
     }
     final receiptResp = await _getJson(
       '$base?module=proxy&action=eth_getTransactionReceipt&txhash=$hash&apikey=$key',
     );
-    final receipt = receiptResp['result'] as Map<String, dynamic>?;
+    _evmGuard(receiptResp);
+    final receiptRaw = receiptResp['result'];
+    final receipt =
+        receiptRaw is Map<String, dynamic> ? receiptRaw : null;
 
     final from = (tx['from'] as String?) ?? '';
     final to = (tx['to'] as String?) ?? '';
@@ -420,13 +442,21 @@ class BlockchainService {
     final balResp = await _getJson(
       '$base?module=account&action=balance&address=$addr&tag=latest&apikey=$key',
     );
-    final wei = BigInt.tryParse((balResp['result'] as String?) ?? '0') ?? BigInt.zero;
+    _evmGuard(balResp);
+    final balRaw = balResp['result'];
+    final wei = (balRaw is String)
+        ? (BigInt.tryParse(balRaw) ?? BigInt.zero)
+        : BigInt.zero;
     final balance = wei / BigInt.from(10).pow(18);
 
     final txResp = await _getJson(
       '$base?module=account&action=txlist&address=$addr&page=1&offset=20&sort=desc&apikey=$key',
     );
-    final txs = (txResp['result'] as List?) ?? const [];
+    _evmGuard(txResp);
+    // BscScan/Etherscan return result as String when there's an error
+    // ("Max rate limit", "Invalid API key"). Safe-check instead of casting.
+    final txRaw = txResp['result'];
+    final txs = (txRaw is List) ? txRaw : const [];
 
     double totalIn = 0;
     double totalOut = 0;
